@@ -371,6 +371,7 @@ p <- ggplot(FittedMeans.m1, aes(x=as.numeric(cat), y=emmean)) +
   ) +
   labs(
     title = 'Estimated Means: Interaction Target polarity with CCONJ and category with CCONJ',
+    subtitle = 'Based on pooled random subsamples of 5000 conjoined adjectives per target adjective.',
     y = 'sentiWords Score',
     x = 'Adj. Categories'
   )
