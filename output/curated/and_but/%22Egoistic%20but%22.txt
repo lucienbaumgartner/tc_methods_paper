@@ -1,0 +1,3 @@
+"TARGET","CCONJ","ADV","ADJ","modifier","comma","id","corpus"
+"egoistic","but","also","stubborn",NA,0,"text2","Sorry but you not only seem to be egoistic but also stubborn."
+"egoistic","but","still","legal",NA,1,"text7","Some could say that it's egoistic, but still legal and you do what you want with your life."
