@@ -117,12 +117,13 @@ p <- ggplot(dfx, aes(y=sentiWords, x=TARGET, fill=CCONJ)) +
 p
 ggsave(p, filename = '../output/plots/overview.png', width = 11, height = 6)
 
-vec <- c('positive', 'negative', 'neutral')
-vec_cols <- c(cols[2], cols[1], 'lightgrey')
+vec <- c('positive', 'negative', 'val.-associated', 'neutral')
+vec_cols <- c(cols[2], cols[1], 'lightgrey', 'lightgrey')
 newcols <- viridis(2, alpha = 0.7)
 .labs <- list(
   title = c('Sentiment Distribution: Positive Target Adjectives', 
             'Sentiment Distribution: Negative Target Adjectives',
+            'Sentiment Distribution: Value-Assoc. Target Adjectives',
             'Sentiment Distribution: Neutral Target Adjectives'),
   caption = c(
       abbrv(
@@ -148,6 +149,16 @@ newcols <- viridis(2, alpha = 0.7)
       abbrv(
         paste0('NUMBER OF NON-UNIQUE ADJ:   ',
                paste0(
+                 names(table(dfx$TARGET[dfx$TARGET_pol == 'val.-associated'])),
+                 ': ',
+                 format(as.character(table(dfx$TARGET[dfx$TARGET_pol == 'val.-associated']), big.mark = "'")),
+                 collapse = '; '
+               )
+        )
+        , width = 170),
+      abbrv(
+        paste0('NUMBER OF NON-UNIQUE ADJ:   ',
+               paste0(
                  names(table(dfx$TARGET[dfx$TARGET_pol == 'neutral'])),
                  ': ',
                  format(as.character(table(dfx$TARGET[dfx$TARGET_pol == 'neutral']), big.mark = "'")),
@@ -158,8 +169,8 @@ newcols <- viridis(2, alpha = 0.7)
   )
 )
 plist <- list()
-for(i in 1:3){
-  if(i == 3)  plist[[i+1]] <- ggplot(dfx %>% filter(TARGET_pol == vec[i]), aes(y=sentiWords, x=TARGET, fill=CCONJ)) + 
+for(i in 1:4){
+  if(i == 4)  plist[[i+1]] <- ggplot(dfx %>% filter(TARGET_pol == vec[i]), aes(y=sentiWords, x=TARGET, fill=CCONJ)) + 
       geom_hline(aes(yintercept=0), lty='dashed') +
       geom_boxplot(outlier.shape = NA) + 
       geom_point(data = means %>% filter(TARGET_pol == vec[i]), aes(y=sentiWords, x=TARGET, colour=CCONJ)) +
@@ -204,7 +215,7 @@ g_legend <- function(a.gplot){
   legend <- tmp$grobs[[leg]] 
   legend
 }
-legend <- g_legend(plist[[4]])
+legend <- g_legend(plist[[5]])
 q <- gridExtra::grid.arrange(plist[[1]], plist[[2]], plist[[3]],
                              legend,
                              heights = c(1,2,2,2),
@@ -216,7 +227,8 @@ q <- gridExtra::grid.arrange(plist[[1]], plist[[2]], plist[[3]],
 ))
 ggsave(plist[[1]], file='../output/plots/POS_only.png', height = 3.5, width = 10)
 ggsave(plist[[2]], file='../output/plots/NEG_only.png', height = 3.5, width = 10)
-ggsave(plist[[3]], file='../output/plots/NEUTRAL_only.png', height = 4, width = 6)
+ggsave(plist[[3]], file='../output/plots/VALASSOC_only.png', height = 4, width = 6)
+ggsave(plist[[4]], file='../output/plots/NEUTRAL_only.png', height = 4, width = 6)
 
 #table(df$NOUN[!is.na(df$sentiWords)])
 
@@ -272,6 +284,13 @@ for(i in unique(dfx$cat)){
   ggsave(p, filename = paste0('../output/plots/clouds', i,'.png'), height=9, width = 15)
 }
 
+
+###### means per word
+
+dfx %>% 
+  group_by(cat, TARGET, CCONJ) %>% 
+  summarise(avg = mean(sentiWords), n = n()) %>% 
+  print(n=200)
 
 #####
 library(emmeans)
@@ -351,6 +370,8 @@ ggsave(p, filename = '../output/plots/emmeans_TARGET_polxCCONJ.png', width = 5, 
 ####### Estimated Means: Interaction Target polarity with CCONJ and category with CCONJ ####### 
 ############################################################################################### 
 
+set.seed(1235)
+dfx_sample <- dfx %>% group_by(TARGET) %>% sample_n(5000, replace = T)
 m1 <- aov(sentiWords ~ TARGET_pol*CCONJ + cat*CCONJ, data = dfx_sample)
 FittedMeans.m1 <- emmeans(m1, ~TARGET_pol|CCONJ + cat|CCONJ)
 FittedPairs.m1 <- pairs(FittedMeans.m1, adjust="bon")
