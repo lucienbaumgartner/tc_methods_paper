@@ -282,6 +282,38 @@ summary(m1)
 
 ############################################################################################### 
 ################### Estimated Means: Interaction of categories with CCONJ #####################
+###############################################################################################
+means_OV <- dfx_sample %>% group_by(TARGET_pol, CCONJ) %>% summarise(sentiWords = mean(sentiWords, na.rm = T))
+p <- ggplot(dfx_sample, aes(x=TARGET_pol, y=sentiWords, fill = CCONJ)) +
+  geom_hline(yintercept = 0, lty = 'dashed') +
+  geom_boxplot(outlier.shape = NA) +
+  #scale_x_continuous(labels = unique(gsub('_(NEG|POS)', '', levels(FittedMeans.m1$cat)))) +
+  geom_point(data = means_OV, aes(y=sentiWords, x=TARGET_pol, colour=CCONJ)) +
+  geom_point(data = means_OV, aes(y=sentiWords, x=TARGET_pol), shape=1) +
+  scale_color_manual(values = rev(newcols)) +
+  scale_fill_manual(values = rev(newcols)) +
+  theme(
+    axis.text.x = element_text(angle=45, hjust=1),
+    plot.title = element_text(face = 'bold')
+  ) +
+  labs(
+    title = abbrv('Sentiment Distribution: Basis for Testing Overall Valence-Effect', width=50),
+    y = 'sentiWords Score',
+    x = 'Target Polarity'
+  )
+p
+
+ggsave(p, file='../output/plots/SUBSAMPLE_H1_02_09_20.png', height = 4, width = 6)
+
+m1 <- aov(sentiWords ~ TARGET_pol*CCONJ, data = dfx_sample)
+FittedMeans.m1 <- emmeans(m1, ~TARGET_pol|CCONJ)
+test(FittedMeans.m1, null = 0, side = ">")
+test(FittedMeans.m1, null = 0, side = "<")
+FittedPairs.m1 <- pairs(FittedMeans.m1, adjust="bon")
+FittedPairs.m1
+
+############################################################################################### 
+################### Estimated Means: Interaction of categories with CCONJ #####################
 ############################################################################################### 
 m1 <- aov(abs(sentiWords) ~ GEN*CCONJ, data = dfx_sample)
 FittedMeans.m1 <- emmeans(m1, ~GEN|CCONJ)
