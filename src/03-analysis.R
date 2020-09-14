@@ -338,7 +338,7 @@ p <- ggplot(FittedMeans.m1, aes(x=cat, y=emmean)) +
   )
 p
 
-ggsave(p, filename = '../output/plots/SUBSAMPLE_emmeans_TARGET_polxCCONJ_02_09_20.png', width = 10, height = 8)
+ggsave(p, filename = '../output/plots/SUBSAMPLE_emmeans_TARGET_polxCCONJ_02_09_20.png', width = 8, height = 8)
 
 ############################################################################################### 
 ####### Estimated Means: Interaction Target polarity with CCONJ and category with CCONJ ####### 
