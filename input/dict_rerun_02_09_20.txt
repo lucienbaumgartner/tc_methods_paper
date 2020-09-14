@@ -1,10 +1,10 @@
 word,cat
-awful,thin_concepts
-terrible,thin_concepts
-bad,thin_concepts
-good,thin_concepts
-great,thin_concepts
-terrific,thin_concepts
+awful,thin_concepts_NEG
+terrible,thin_concepts_NEG
+bad,thin_concepts_NEG
+good,thin_concepts_POS
+great,thin_concepts_POS
+terrific,thin_concepts_POS
 courageous,thick_moral_concepts_POS
 compassionate,thick_moral_concepts_POS
 honest,thick_moral_concepts_POS

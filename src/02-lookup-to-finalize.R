@@ -22,7 +22,7 @@ make_regex <- function(INDEX){
   SYNTAX <- unique(SYNTAX)
   tmp <- str_replace_all(SYNTAX, c(
     'ADV' = '\\\\w+',
-    'CCONJ' = 'and',
+    'CCONJ' = '(and|but)',
     'PUNCT' = '\\\\,'
   ))
   regex1 <- sub('ADJ', TARGET, tmp)
@@ -61,13 +61,13 @@ make_regex <- function(INDEX){
 }
 
 
-for(i in datasets[-1]){
+for(i in datasets){
   
   #i=datasets[1]
   load(i)
   print(i)
   df <- mutate(df, TARGET = strsplit(gsub('\\,', '', match), '\\s'))
-  df <- mutate(df, CCONJ = sapply(TARGET, function(x) return(x[x %in% c('and', 'or')][1])))
+  df <- mutate(df, CCONJ = sapply(TARGET, function(x) return(x[x %in% c('and', 'but')][1])))
   df <- mutate(df, TARGET = sapply(TARGET, function(x) return(x[x %in% search.terms$word][1])))
   df <- mutate(df, comma = grepl('\\,', match))
   

@@ -10,26 +10,20 @@ library(nortest)
 library(fastDummies)
 library(pbapply)
 library(tm)
+library(scales)
+library(emmeans)
 rm(list=ls())
 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 getwd()
 
 abbrv <- function(x, width = 200) lapply(strwrap(x, width, simplify = FALSE), paste, collapse="\n")
-kw <- read.table('../input/dict_and_but.txt', stringsAsFactors = F, sep=',', header = T) %>% rename(TARGET = word)
+kw <- read.table('../input/dict_rerun_02_09_20.txt', stringsAsFactors = F, sep=',', header = T) %>% rename(TARGET = word)
 
-df <- pblapply(list.files('../output/curated/and_but', full.names = T, pattern = '\\.RDS'), 
-             function(x){
-               load(x)
-               return(corpus2)
-             })
-df <- do.call(rbind, df) %>% as_tibble
-df <- df %>% mutate(TARGET = gsub('.*(\\;|\\(|\\)|\\~|「|\\+|\\%|\\||\\”|\\—)|\\s', '', TARGET),
-                    TARGET = removePunctuation(TARGET),
-                    TARGET = ifelse(TARGET == "︎friendly", "friendly", TARGET))
-df <- df %>% filter(!TARGET%in%c('courageous', 'egoistic'))
-
-
+load('/Volumes/INTENSO/methods_paper/output/02.5-makro/makro.RDS')
+#load('/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/new-reddit.RDS')
+#df <- reddit
+#rm(reddit)
 load('../res/sentiWords-db.RDS')
 
 annot <- tokens(df$ADJ)
@@ -39,91 +33,71 @@ annot <- sapply(annot, function(x) mean(as.numeric(unlist(x)),  na.rm = T))
 df$sentiWords <- annot
 rm(annot)
 
-save(df, file = '../output/final_corpus/corpus_redone.RDS')
-load('../output/final_corpus/corpus_redone.RDS')
+df <- df %>% mutate(CCONJ = ifelse(is.na(CCONJ), 'but', CCONJ))
 
-prblm <- c('dishonest', 'dishonesty', 'impermanent', 'louder', 'rudeness', 'rudest', 'stupidity', 'stupidly', 'uncruel', 'unfair', 'unfriendly', 'unfunny', 'honesty', 'crude', 'selfishness', 'unselfish')
-nrow(filter(df, TARGET%in%prblm))/nrow(df)
-dfx <- df %>% filter(!TARGET%in%prblm)
+save(df, file = '/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/corpus_redone.RDS')
+load('/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/corpus_redone.RDS')
 
 prblm <- c('too', 'not', 'less')
-nrow(filter(df, modifier%in%prblm))/nrow(df)
-nrow(filter(df, modifier%in%c('so', 'very', 'really')))/nrow(df)
-dfx <- dfx %>% filter(!modifier%in%prblm)
-nrow(filter(df, ADV%in%prblm))/nrow(df)
-dfx <- dfx %>% filter(!ADV%in%prblm)
+#nrow(filter(df, modifier%in%prblm))/nrow(df)
+#nrow(filter(df, modifier%in%c('so', 'very', 'really')))/nrow(df)
+dfx <- df %>% filter(!(TARGET_mod%in%prblm|ADV%in%prblm))
+#nrow(filter(df, ADV%in%prblm))/nrow(df)
+#dfx <- dfx %>% filter(!ADV%in%prblm)
 prblm <- c('most', 'many', 'more', 'non', 'other', 'last', 'overall', 'much', 'idk', 'holy', 'such')
 nrow(filter(df, ADJ%in%prblm))/nrow(df)
 dfx <- dfx %>% filter(!ADJ%in%prblm)
+dfx <- filter(dfx, !sentiWords == 0)
 
-df %>% filter(!is.na(CCONJ)) %>% filter(CCONJ%in%c('and', 'but')) %>% nrow/nrow(df)
-dfx <- dfx %>% filter(!is.na(CCONJ)|CCONJ%in%c('and', 'but'))
+#df %>% filter(!is.na(CCONJ)) %>% filter(CCONJ%in%c('and', 'but')) %>% nrow/nrow(df)
+#dfx <- dfx %>% filter(!is.na(CCONJ)|CCONJ%in%c('and', 'but'))
 
-tp <- table(dfx$modifier) %>% sort %>% tail(., 30) %>% as.data.frame() %>% arrange(desc(Freq)) %>% rename(modifierTARGET = Var1)
+tp <- table(dfx$TARGET_mod) %>% sort %>% tail(., 30) %>% as.data.frame() %>% arrange(desc(Freq)) %>% rename(modifierTARGET = Var1)
 write.table(tp, '../output/metainfo_wordlists/operation_pony_top30_modifiers_of_target_ADJ_SAMPLE.txt', quote = F, row.names = F, sep = ';')
 tp <- table(dfx$ADJ) %>% sort %>% tail(., 30) %>% as.data.frame() %>% arrange(desc(Freq)) %>% rename(ADJ = Var1)
 write.table(tp, '../output/metainfo_wordlists/operation_pony_top30_ADJ_SAMPLE.txt', quote = F, row.names = F, sep = ';')
 
 dfx <- left_join(dfx, kw)
+dfx <- filter(dfx, !is.na(sentiWords))
 means <- dfx %>% group_by(TARGET, CCONJ, cat) %>% 
   summarise(sentiWords = mean(sentiWords, na.rm = T))
-dfx <- dfx %>% filter(!(is.na(sentiWords)|is.na(cat)|is.na(CCONJ)))
-library(scales)
+#dfx <- dfx %>% filter(!(is.na(sentiWords)|is.na(cat)|is.na(CCONJ)))
+
 annot <- tokens_lookup(tokens(unique(dfx$TARGET)), dictionary = sentiWords$dichot)
 annot <- tibble(TARGET = unique(dfx$TARGET), TARGET_pol = sapply(annot, function(x) x[1]))
-annot <- annot %>% mutate(TARGET_pol = ifelse(TARGET %in% c('loud', 'short', 'permanent', 'narrow'), 'neutral', TARGET_pol),
-                          TARGET_pol = ifelse(TARGET %in% c('empty', 'sunny', 'young', 'closed'), 'val.-associated', TARGET_pol))
+neutrals <- kw %>% filter(cat == 'descriptive_concepts') %>% pull(TARGET)
+valAssocs <- kw %>% filter(cat == 'descriptive_concepts') %>% pull(TARGET)
+annot <- annot %>% mutate(TARGET_pol = ifelse(TARGET %in% neutrals, 'neutral', TARGET_pol))
 dfx <- left_join(dfx, annot)
 means <- left_join(means, annot)
 
-cols <- hue_pal()(2)
-p <- ggplot(dfx, aes(y=sentiWords, x=TARGET, fill=CCONJ)) + 
-  geom_hline(aes(yintercept=0), lty='dashed') +
-  geom_boxplot(outlier.shape = NA) + 
-  geom_point(data = means %>% filter(TARGET_pol == 'negative'), aes(y=sentiWords, x=TARGET, colour=CCONJ)) +
-  geom_point(data = means %>% filter(TARGET_pol == 'negative'), aes(y=sentiWords, x=TARGET), shape=1) +
-  facet_grid(TARGET_pol~cat, scales = 'free_x', drop = T) +
-  scale_color_manual(values = rev(cols)) +
-  scale_fill_manual(values = rev(cols)) +
-  guides(color = FALSE) +
-  labs(
-    title = 'Sentiment Distribution of Adjective Conjunctions',
-    subtitle = abbrv(paste0('The data consists of ', 
-                      format(as.character(length(dfx$TARGET[!is.na(dfx$sentiWords)])), big.mark = "'"),
-                      ' TARGET ADJ + CCONJ + ADJ constructions from reddit comments. The data spans over the following time period: ',
-                      today()-2,
-                      ' to ',
-                      today()-2-100,
-                      ' (100 days). The boxes represent the quartiles, the whiskers +/-1.5*IQR, the horizontal line the median, and the dots the means.'
-                      ), width = 130),
-    fill = 'CCONJ',
-    y = 'sentiWords Score\nfor lemma#pos:#a (adjectives)',
-    caption = 
-      abbrv(
-        paste0('NUMBER OF NON-UNIQUE ADJ:   ',
-               paste0(
-                 names(table(dfx$TARGET[!is.na(dfx$sentiWords)])),
-                 ': ',
-                 format(as.character(table(dfx$TARGET[!is.na(dfx$sentiWords)]), big.mark = "'")),
-                 collapse = '; '
-               )
-        )
-      , width = 170)
-  ) +
-  theme(
-    plot.title = element_text(face= 'bold'),
-    axis.text.x = element_text(angle = 45, hjust = 1)
-  )
-p
-ggsave(p, filename = '../output/plots/overview.png', width = 11, height = 6)
+set.seed(7826)
+dfx_sample <- dfx %>% group_by(TARGET, CCONJ) %>% sample_n(5000, replace = T)
 
-vec <- c('positive', 'negative', 'val.-associated', 'neutral')
+dfx <- dfx %>% mutate(GEN = gsub('\\_(NEG|POS)', '', cat))
+means_OV <- dfx %>% group_by(GEN, CCONJ) %>% 
+  summarise(sentiWords = mean(abs(sentiWords), na.rm = T))
+
+cols <- hue_pal()(2)
 vec_cols <- c(cols[2], cols[1], 'lightgrey', 'lightgrey')
 newcols <- viridis(2, alpha = 0.7)
+p <- ggplot(dfx_sample, aes(y=abs(sentiWords), x=GEN, fill =CCONJ)) +
+  geom_boxplot() +
+  geom_point(data = means_OV, aes(y=sentiWords, x=GEN, colour=CCONJ)) +
+  theme(plot.title = element_text(face = 'bold')) +
+  scale_colour_manual(values = rev(newcols)) +
+  scale_fill_manual(values = rev(newcols)) +
+  labs(x = 'Category',
+       title = 'Overall Absolute Sentiment Distribution per Category')
+
+p
+
+ggsave(p, filename = '../output/plots/SUBSAMPLE_overview_only_02_09_20.png', width = 11, height = 6)
+
+vec <- c('positive', 'negative', 'neutral')
 .labs <- list(
   title = c('Sentiment Distribution: Positive Target Adjectives', 
             'Sentiment Distribution: Negative Target Adjectives',
-            'Sentiment Distribution: Value-Assoc. Target Adjectives',
             'Sentiment Distribution: Neutral Target Adjectives'),
   caption = c(
       abbrv(
@@ -149,16 +123,6 @@ newcols <- viridis(2, alpha = 0.7)
       abbrv(
         paste0('NUMBER OF NON-UNIQUE ADJ:   ',
                paste0(
-                 names(table(dfx$TARGET[dfx$TARGET_pol == 'val.-associated'])),
-                 ': ',
-                 format(as.character(table(dfx$TARGET[dfx$TARGET_pol == 'val.-associated']), big.mark = "'")),
-                 collapse = '; '
-               )
-        )
-        , width = 170),
-      abbrv(
-        paste0('NUMBER OF NON-UNIQUE ADJ:   ',
-               paste0(
                  names(table(dfx$TARGET[dfx$TARGET_pol == 'neutral'])),
                  ': ',
                  format(as.character(table(dfx$TARGET[dfx$TARGET_pol == 'neutral']), big.mark = "'")),
@@ -169,8 +133,8 @@ newcols <- viridis(2, alpha = 0.7)
   )
 )
 plist <- list()
-for(i in 1:4){
-  if(i == 4)  plist[[i+1]] <- ggplot(dfx %>% filter(TARGET_pol == vec[i]), aes(y=sentiWords, x=TARGET, fill=CCONJ)) + 
+for(i in 1:3){
+  if(i == 3)  plist[[i+1]] <- ggplot(dfx_sample %>% filter(TARGET_pol == vec[i]), aes(y=sentiWords, x=TARGET, fill=CCONJ)) + 
       geom_hline(aes(yintercept=0), lty='dashed') +
       geom_boxplot(outlier.shape = NA) + 
       geom_point(data = means %>% filter(TARGET_pol == vec[i]), aes(y=sentiWords, x=TARGET, colour=CCONJ)) +
@@ -189,7 +153,7 @@ for(i in 1:4){
         fill = 'CCONJ',
         y = 'sentiWords Score\nfor lemma#pos:#a (adjectives)'
       )
-  plist[[i]] <- ggplot(dfx %>% filter(TARGET_pol == vec[i]), aes(y=sentiWords, x=TARGET, fill=CCONJ)) + 
+  plist[[i]] <- ggplot(dfx_sample %>% filter(TARGET_pol == vec[i]), aes(y=sentiWords, x=TARGET, fill=CCONJ)) + 
     geom_hline(aes(yintercept=0), lty='dashed') +
     geom_boxplot(outlier.shape = NA) + 
     geom_point(data = means %>% filter(TARGET_pol == vec[i]), aes(y=sentiWords, x=TARGET, colour=CCONJ)) +
@@ -205,8 +169,9 @@ for(i in 1:4){
       legend.position = 'right'
     ) +
     labs(x="Target Adjective",  y = 'sentiWords Score\nfor lemma#pos:#a (adjectives)',
-         title = .labs[['title']][i],
-         caption = .labs[['caption']][i])
+         title = .labs[['title']][i]
+        # ,caption = .labs[['caption']][i]
+         )
 }
 
 g_legend <- function(a.gplot){ 
@@ -215,7 +180,7 @@ g_legend <- function(a.gplot){
   legend <- tmp$grobs[[leg]] 
   legend
 }
-legend <- g_legend(plist[[5]])
+legend <- g_legend(plist[[4]])
 q <- gridExtra::grid.arrange(plist[[1]], plist[[2]], plist[[3]],
                              legend,
                              heights = c(1,2,2,2),
@@ -225,10 +190,15 @@ q <- gridExtra::grid.arrange(plist[[1]], plist[[2]], plist[[3]],
                                c(2,2,2,2),
                                c(NA,3,3,NA)
 ))
-ggsave(plist[[1]], file='../output/plots/POS_only.png', height = 3.5, width = 10)
-ggsave(plist[[2]], file='../output/plots/NEG_only.png', height = 3.5, width = 10)
-ggsave(plist[[3]], file='../output/plots/VALASSOC_only.png', height = 4, width = 6)
-ggsave(plist[[4]], file='../output/plots/NEUTRAL_only.png', height = 4, width = 6)
+ggsave(plist[[1]], file='../output/plots/POS_only_02_09_20.png', height = 3.5, width = 10)
+ggsave(plist[[2]], file='../output/plots/NEG_only_02_09_20.png', height = 3.5, width = 10)
+#ggsave(plist[[3]], file='../output/plots/VALASSOC_only.png', height = 4, width = 6)
+ggsave(plist[[3]], file='../output/plots/NEUTRAL_only_02_09_20.png', height = 4, width = 6)
+
+ggsave(plist[[1]], file='../output/plots/SUBSAMPLE_POS_only_02_09_20.png', height = 3.5, width = 10)
+ggsave(plist[[2]], file='../output/plots/SUBSAMPLE_NEG_only_02_09_20.png', height = 3.5, width = 10)
+#ggsave(plist[[3]], file='../output/plots/VALASSOC_only.png', height = 4, width = 6)
+ggsave(plist[[3]], file='../output/plots/SUBSAMPLE_NEUTRAL_only_02_09_20.png', height = 4, width = 6)
 
 #table(df$NOUN[!is.na(df$sentiWords)])
 
@@ -293,7 +263,7 @@ dfx %>%
   print(n=200)
 
 #####
-library(emmeans)
+
 set.seed(1234)
 res.aov <- aov(sentiWords ~ cat*CCONJ, data = dfx[sample(1:nrow(dfx), 5000),])
 leveneTest(sentiWords ~ cat*CCONJ, data = dfx)
@@ -313,58 +283,60 @@ summary(m1)
 ############################################################################################### 
 ################### Estimated Means: Interaction of categories with CCONJ #####################
 ############################################################################################### 
-
-m1 <- aov(abs(sentiWords) ~ cat*CCONJ, data = dfx)
-FittedMeans.m1 <- emmeans(m1, ~cat|CCONJ)
+m1 <- aov(abs(sentiWords) ~ GEN*CCONJ, data = dfx_sample)
+FittedMeans.m1 <- emmeans(m1, ~GEN|CCONJ)
+#FittedPairs.m1 <- contrast(regrid(FittedMeans.m1))
+FittedPairs.m1 <- pairs(FittedMeans.m1)
+FittedPairs.m1
 FittedMeans.m1 <- summary(FittedMeans.m1)
 FittedMeans.m1 <- as.data.frame(FittedMeans.m1)
-p <- ggplot(FittedMeans.m1, aes(x=as.numeric(cat), y=emmean)) +
+p <- ggplot(FittedMeans.m1, aes(x=as.numeric(GEN), y=emmean)) +
   geom_rect(aes(ymin=lower.CL, ymax=upper.CL, xmax=Inf, xmin=-Inf), fill='red', alpha=.2) +
   geom_point() +
   geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width = 0.2) +
   facet_wrap(~ CCONJ) +
-  scale_x_continuous(labels = levels(FittedMeans.m1$cat)) +
+  scale_x_continuous(labels = levels(FittedMeans.m1$GEN)) +
   theme(
     axis.text.x = element_text(angle=45, hjust=1),
     plot.title = element_text(face = 'bold')
   ) +
   labs(
-    title = 'Estimated Means: Interaction of categories with CCONJ',
+    title = 'Estimated Means: Interaction of categories with CCONJ on Absolute Sentiment',
     y = 'sentiWords Score',
     x = 'Adj. Categories'
   )
 p
-ggsave(p, filename = '../output/plots/emmeans_catxCCONJ.png', width = 8, height = 8)
+ggsave(p, filename = '../output/plots/SUBSAMPLE_emmeans_catxCCONJ_02_09_20.png', width = 8, height = 8)
+ggsave(p, filename = '../output/plots/SAMPLE_emmeans_catxCCONJ_02_09_20.png', width = 8, height = 8)
 
 ############################################################################################### 
 ################## Estimated Means: Interaction Target polarity with CCONJ ####################
 ############################################################################################### 
-set.seed(1235)
-dfx_sample <- dfx %>% group_by(TARGET) %>% sample_n(5000, replace = T)
-m1 <- aov(sentiWords ~ TARGET_pol*CCONJ, data = dfx_sample)
-FittedMeans.m1 <- emmeans(m1, ~TARGET_pol|CCONJ)
+m1 <- aov(sentiWords ~ cat*CCONJ, data = dfx_sample[!dfx_sample$cat == 'descriptive_concepts',])
+FittedMeans.m1 <- emmeans(m1, ~cat|CCONJ)
 FittedPairs.m1 <- pairs(FittedMeans.m1, adjust="bon")
-summary(m1)
 FittedMeans.m1 <- summary(FittedMeans.m1)
 FittedMeans.m1 <- as.data.frame(FittedMeans.m1)
-p <- ggplot(FittedMeans.m1, aes(x=as.numeric(TARGET_pol), y=emmean)) +
-  geom_rect(aes(ymin=lower.CL, ymax=upper.CL, xmax=Inf, xmin=-Inf), fill='red', alpha=.2) +
+FittedMeans.m1 <- mutate(FittedMeans.m1, fill = gsub('.*_(NEG|POS)', '\\1', cat))
+p <- ggplot(FittedMeans.m1, aes(x=as.numeric(cat), y=emmean)) +
+  geom_rect(aes(ymin=lower.CL, ymax=upper.CL, xmax=Inf, xmin=-Inf, fill=fill), alpha=.2) +
   geom_point() +
   geom_hline(aes(yintercept = 0), lty='dashed') +
   geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width = 0.2) +
   facet_wrap(~ CCONJ) +
-  scale_x_continuous(labels = levels(FittedMeans.m1$TARGET_pol), breaks = c(1,2,3)) +
+  scale_x_continuous(labels = levels(FittedMeans.m1$cat), breaks = 1:8) +
   theme(
     axis.text.x = element_text(angle=45, hjust=1),
     plot.title = element_text(face = 'bold')
   ) +
   labs(
-    title = abbrv('Estimated Means: Interaction Target polarity with CCONJ', width=50),
+    title = abbrv('Estimated Means: Interaction Target polarity with CCONJ per Category', width=300),
     y = 'sentiWords Score',
     x = 'Target Polarity'
   )
+p
 
-ggsave(p, filename = '../output/plots/emmeans_TARGET_polxCCONJ.png', width = 5, height = 8)
+ggsave(p, filename = '../output/plots/SUBSAMPLE_emmeans_TARGET_polxCCONJ_02_09_20.png', width = 10, height = 8)
 
 ############################################################################################### 
 ####### Estimated Means: Interaction Target polarity with CCONJ and category with CCONJ ####### 
