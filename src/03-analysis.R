@@ -318,13 +318,15 @@ FittedPairs.m1 <- pairs(FittedMeans.m1, adjust="bon")
 FittedMeans.m1 <- summary(FittedMeans.m1)
 FittedMeans.m1 <- as.data.frame(FittedMeans.m1)
 FittedMeans.m1 <- mutate(FittedMeans.m1, fill = gsub('.*_(NEG|POS)', '\\1', cat))
-p <- ggplot(FittedMeans.m1, aes(x=as.numeric(cat), y=emmean)) +
-  geom_rect(aes(ymin=lower.CL, ymax=upper.CL, xmax=Inf, xmin=-Inf, fill=fill), alpha=.2) +
+p <- ggplot(FittedMeans.m1, aes(x=cat, y=emmean)) +
+  geom_rect(aes(ymin=lower.CL, ymax=upper.CL, xmax=Inf, xmin=-Inf, fill=CCONJ), alpha=.6) +
   geom_point() +
   geom_hline(aes(yintercept = 0), lty='dashed') +
   geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width = 0.2) +
-  facet_wrap(~ CCONJ) +
-  scale_x_continuous(labels = levels(FittedMeans.m1$cat), breaks = 1:8) +
+  facet_wrap(~ fill, scales = 'free_x') +
+  #scale_x_continuous(labels = unique(gsub('_(NEG|POS)', '', levels(FittedMeans.m1$cat)))) +
+  scale_color_manual(values = rev(newcols)) +
+  scale_fill_manual(values = rev(newcols)) +
   theme(
     axis.text.x = element_text(angle=45, hjust=1),
     plot.title = element_text(face = 'bold')
