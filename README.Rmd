@@ -122,7 +122,9 @@ CCONJ = and:
 ![pos](output/plots/SUBSAMPLE_POS_only_02_09_20.png)
 ![neg](output/plots/SUBSAMPLE_NEG_only_02_09_20.png)
 ![neutral](output/plots/SUBSAMPLE_NEUTRAL_only_02_09_20.png)
+
 #### Observed Average per Word
+
 <pre>
    GEN                       TARGET        CCONJ     avg     n
    <chr>                     <chr>         <chr>   <dbl> <int>

@@ -14,6 +14,7 @@ Lucien Baumgartner
           - [Additional Material](#additional-material)
               - [Overview of the Pooled
                 Subsample](#overview-of-the-pooled-subsample)
+              - [Observed Average per Word](#observed-average-per-word)
               - [Do the Target Categories have Significantly Different
                 Average *Absolute*
                 Valences?](#do-the-target-categories-have-significantly-different-average-absolute-valences)
@@ -134,8 +135,9 @@ CCONJ = and:
 
 ![pos](output/plots/SUBSAMPLE_POS_only_02_09_20.png)
 ![neg](output/plots/SUBSAMPLE_NEG_only_02_09_20.png)
-![neutral](output/plots/SUBSAMPLE_NEUTRAL_only_02_09_20.png) \#\#\#\#
-Observed Average per Word
+![neutral](output/plots/SUBSAMPLE_NEUTRAL_only_02_09_20.png)
+
+#### Observed Average per Word
 
 <pre>
    GEN                       TARGET        CCONJ     avg     n
