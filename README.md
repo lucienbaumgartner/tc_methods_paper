@@ -134,7 +134,103 @@ CCONJ = and:
 
 ![pos](output/plots/SUBSAMPLE_POS_only_02_09_20.png)
 ![neg](output/plots/SUBSAMPLE_NEG_only_02_09_20.png)
-![neutral](output/plots/SUBSAMPLE_NEUTRAL_only_02_09_20.png)
+![neutral](output/plots/SUBSAMPLE_NEUTRAL_only_02_09_20.png) \#\#\#\#
+Observed Average per Word
+
+<pre>
+   GEN                       TARGET        CCONJ     avg     n
+   <chr>                     <chr>         <chr>   <dbl> <int>
+ 1 descriptive_concepts      dry           and   -0.0292  5000
+ 2 descriptive_concepts      dry           but    0.250   5000
+ 3 descriptive_concepts      large         and    0.123   5000
+ 4 descriptive_concepts      large         but    0.0831  5000
+ 5 descriptive_concepts      loud          and   -0.0392  5000
+ 6 descriptive_concepts      loud          but    0.209   5000
+ 7 descriptive_concepts      narrow        and   -0.0616  5000
+ 8 descriptive_concepts      narrow        but    0.183   5000
+ 9 descriptive_concepts      permanent     and    0.0145  5000
+10 descriptive_concepts      permanent     but    0.0827  5000
+11 descriptive_concepts      rainy         and   -0.104   5000
+12 descriptive_concepts      rainy         but    0.178   5000
+13 descriptive_concepts      short         and    0.202   5000
+14 descriptive_concepts      short         but    0.337   5000
+15 descriptive_concepts      wooden        and   -0.175   5000
+16 descriptive_concepts      wooden        but   -0.0478  5000
+17 descriptive_concepts      yellow        and    0.229   5000
+18 descriptive_concepts      yellow        but    0.243   5000
+19 thick_moral_concepts      compassionate and    0.402   5000
+20 thick_moral_concepts      compassionate but    0.128   5000
+21 thick_moral_concepts      courageous    and    0.416   5000
+22 thick_moral_concepts      courageous    but    0.0715  5000
+23 thick_moral_concepts      cruel         and   -0.252   5000
+24 thick_moral_concepts      cruel         but    0.282   5000
+25 thick_moral_concepts      friendly      and    0.404   5000
+26 thick_moral_concepts      friendly      but    0.126   5000
+27 thick_moral_concepts      generous      and    0.483   5000
+28 thick_moral_concepts      generous      but    0.152   5000
+29 thick_moral_concepts      honest        and    0.325   5000
+30 thick_moral_concepts      honest        but    0.155   5000
+31 thick_moral_concepts      reckless      and   -0.403   5000
+32 thick_moral_concepts      reckless      but    0.0447  5000
+33 thick_moral_concepts      rude          and   -0.408   5000
+34 thick_moral_concepts      rude          but    0.0128  5000
+35 thick_moral_concepts      selfish       and   -0.423   5000
+36 thick_moral_concepts      selfish       but    0.0158  5000
+37 thick_moral_concepts      vicious       and   -0.342   5000
+38 thick_moral_concepts      vicious       but    0.0421  5000
+39 thick_non-moral_concepts  beautiful     and    0.404   5000
+40 thick_non-moral_concepts  beautiful     but   -0.198   5000
+41 thick_non-moral_concepts  boring        and   -0.261   5000
+42 thick_non-moral_concepts  boring        but    0.293   5000
+43 thick_non-moral_concepts  delicious     and    0.401   5000
+44 thick_non-moral_concepts  delicious     but    0.0284  5000
+45 thick_non-moral_concepts  disgusting    and   -0.434   5000
+46 thick_non-moral_concepts  disgusting    but    0.282   5000
+47 thick_non-moral_concepts  funny         and    0.283   5000
+48 thick_non-moral_concepts  funny         but   -0.0422  5000
+49 thick_non-moral_concepts  insane        and   -0.229   5000
+50 thick_non-moral_concepts  insane        but    0.216   5000
+51 thick_non-moral_concepts  justified     and    0.286   5000
+52 thick_non-moral_concepts  justified     but   -0.0207  5000
+53 thick_non-moral_concepts  stupid        and   -0.338   5000
+54 thick_non-moral_concepts  stupid        but    0.186   5000
+55 thick_non-moral_concepts  ugly          and   -0.317   5000
+56 thick_non-moral_concepts  ugly          but    0.277   5000
+57 thick_non-moral_concepts  wise          and    0.356   5000
+58 thick_non-moral_concepts  wise          but    0.126   5000
+59 thin_concepts             awful         and   -0.354   5000
+60 thin_concepts             awful         but    0.243   5000
+61 thin_concepts             bad           and   -0.153   5000
+62 thin_concepts             bad           but    0.186   5000
+63 thin_concepts             good          and    0.0558  5000
+64 thin_concepts             good          but   -0.0398  5000
+65 thin_concepts             great         and    0.349   5000
+66 thin_concepts             great         but    0.0222  5000
+67 thin_concepts             terrible      and   -0.307   5000
+68 thin_concepts             terrible      but    0.232   5000
+69 thin_concepts             terrific      and    0.250   5000
+70 thin_concepts             terrific      but    0.0665  5000
+71 value-associated_concepts bloody        and   -0.349   5000
+72 value-associated_concepts bloody        but    0.0235  5000
+73 value-associated_concepts broken        and   -0.349   5000
+74 value-associated_concepts broken        but    0.233   5000
+75 value-associated_concepts closed        and    0.141   5000
+76 value-associated_concepts closed        but    0.173   5000
+77 value-associated_concepts empty         and   -0.269   5000
+78 value-associated_concepts empty         but    0.172   5000
+79 value-associated_concepts homeless      and   -0.361   5000
+80 value-associated_concepts homeless      but    0.152   5000
+81 value-associated_concepts quiet         and    0.214   5000
+82 value-associated_concepts quiet         but    0.278   5000
+83 value-associated_concepts rich          and    0.173   5000
+84 value-associated_concepts rich          but    0.0113  5000
+85 value-associated_concepts shiny         and    0.402   5000
+86 value-associated_concepts shiny         but    0.103   5000
+87 value-associated_concepts sunny         and    0.374   5000
+88 value-associated_concepts sunny         but    0.173   5000
+89 value-associated_concepts tall          and    0.200   5000
+90 value-associated_concepts tall          but    0.121   5000
+</pre>
 
 #### Do the Target Categories have Significantly Different Average *Absolute* Valences?
 
@@ -149,12 +245,33 @@ have lower average valence than thick conepts. Also note that moral and
 non-moral thick concepts occupy a similar strata and could maybe be
 combined in the future.
 
+**Note that the plot below shows estimated marginal means**:
+<https://cran.r-project.org/web/packages/emmeans/vignettes/basics.html>
+
 ![estimated
 means](output/plots/SUBSAMPLE_emmeans_catxCCONJ_02_09_20.png)
 
 Results of the ANOVA:
 
 <b>m1 \<- aov(abs(sentiWords) \~ cat\*CCONJ, data = dfx\_sample)</b>
+
+<b> estimated means </b>
+
+<pre>
+                         GEN CCONJ    emmean           SE     df  lower.CL  upper.CL
+1       descriptive_concepts   and 0.2986580 0.0010022992 449990 0.2966935 0.3006225
+2       thick_moral_concepts   and 0.4435842 0.0009508645 449990 0.4417205 0.4454478
+3   thick_non-moral_concepts   and 0.4362664 0.0009508645 449990 0.4344027 0.4381300
+4              thin_concepts   and 0.4572198 0.0012275608 449990 0.4548139 0.4596258
+5  value-associated_concepts   and 0.3915487 0.0009508645 449990 0.3896851 0.3934124
+6       descriptive_concepts   but 0.3456327 0.0010022992 449990 0.3436682 0.3475971
+7       thick_moral_concepts   but 0.3993863 0.0009508645 449990 0.3975226 0.4012499
+8   thick_non-moral_concepts   but 0.4034516 0.0009508645 449990 0.4015879 0.4053152
+9              thin_concepts   but 0.3739884 0.0012275608 449990 0.3715825 0.3763944
+10 value-associated_concepts   but 0.3639294 0.0009508645 449990 0.3620657 0.3657930
+</pre>
+
+<b> pairwise comparisons </b>
 
 <pre>
 CCONJ = and:
@@ -196,6 +313,9 @@ is a good sign. The two types of thick concepts (moral/non-m.) do not
 behave similarly anymore, in contrast to the analysis above using
 absolute valence measures. This speaks against collapsing the types into
 a single category.
+
+**Note that the plot below shows estimated marginal means**:
+<https://cran.r-project.org/web/packages/emmeans/vignettes/basics.html>
 
 ![estimated
 means](output/plots/SUBSAMPLE_emmeans_TARGET_polxCCONJ_02_09_20.png)

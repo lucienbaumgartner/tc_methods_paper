@@ -92,7 +92,7 @@ Lurls <- lapply(search.terms$word, function(x){
 
 names(Lurls) <- search.terms$word
 
-for(m in search.terms$word[-c(1:44)]){
+for(m in search.terms$word[-c(1:51)]){
   #m <- search.terms$word[1]
   urls <- Lurls[[m]]
   print(m)

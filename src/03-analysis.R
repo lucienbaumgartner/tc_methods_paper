@@ -74,8 +74,8 @@ means <- left_join(means, annot)
 set.seed(7826)
 dfx_sample <- dfx %>% group_by(TARGET, CCONJ) %>% sample_n(5000, replace = T)
 
-dfx <- dfx %>% mutate(GEN = gsub('\\_(NEG|POS)', '', cat))
-means_OV <- dfx %>% group_by(GEN, CCONJ) %>% 
+dfx_sample <- dfx_sample %>% mutate(GEN = gsub('\\_(NEG|POS)', '', cat))
+means_OV <- dfx_sample %>% group_by(GEN, CCONJ) %>% 
   summarise(sentiWords = mean(abs(sentiWords), na.rm = T))
 
 cols <- hue_pal()(2)
@@ -257,8 +257,8 @@ for(i in unique(dfx$cat)){
 
 ###### means per word
 
-dfx %>% 
-  group_by(cat, TARGET, CCONJ) %>% 
+dfx_sample %>% 
+  group_by(GEN, TARGET, CCONJ) %>% 
   summarise(avg = mean(sentiWords), n = n()) %>% 
   print(n=200)
 
@@ -311,12 +311,22 @@ test(FittedMeans.m1, null = 0, side = ">")
 test(FittedMeans.m1, null = 0, side = "<")
 FittedPairs.m1 <- pairs(FittedMeans.m1, adjust="bon")
 FittedPairs.m1
+FittedMeans.m1
 
 ############################################################################################### 
 ################### Estimated Means: Interaction of categories with CCONJ #####################
-############################################################################################### 
+###############################################################################################
+dfx_sample <- mutate(dfx_sample, GEN_X_CCONJ = paste0(GEN, '_', CCONJ))
+#cell.means <- matrix(with(dfx_sample, tapply(sentiWords, interaction(GEN, CCONJ), mean)), nrow = 5)
+with(dfx_sample, tapply(sentiWords, interaction(GEN_X_CCONJ, TARGET), mean))
+cell.means
+freqs <- with(dfx_sample, table(GEN, CCONJ))
+freqs
+freqs[1, 1] * cell.means[1, 1] / freqs[1, 1]
 m1 <- aov(abs(sentiWords) ~ GEN*CCONJ, data = dfx_sample)
+summary(m1)
 FittedMeans.m1 <- emmeans(m1, ~GEN|CCONJ)
+FittedMeans.m1
 #FittedPairs.m1 <- contrast(regrid(FittedMeans.m1))
 FittedPairs.m1 <- pairs(FittedMeans.m1)
 FittedPairs.m1
@@ -339,7 +349,7 @@ p <- ggplot(FittedMeans.m1, aes(x=as.numeric(GEN), y=emmean)) +
   )
 p
 ggsave(p, filename = '../output/plots/SUBSAMPLE_emmeans_catxCCONJ_02_09_20.png', width = 8, height = 8)
-ggsave(p, filename = '../output/plots/SAMPLE_emmeans_catxCCONJ_02_09_20.png', width = 8, height = 8)
+#ggsave(p, filename = '../output/plots/SAMPLE_emmeans_catxCCONJ_02_09_20.png', width = 8, height = 8)
 
 ############################################################################################### 
 ################## Estimated Means: Interaction Target polarity with CCONJ ####################
