@@ -118,6 +118,12 @@ dfx_sample <- dfx_sample %>% mutate(GEN = gsub('\\_(NEG|POS)', '', cat))
 means_OV <- dfx_sample %>% group_by(GEN, CCONJ) %>% 
   summarise(sentiWords = mean(abs(sentiWords), na.rm = T))
 
+# Medians for Kevin's Cluster-Analysis
+medians <- dfx_sample %>% filter(CCONJ == 'and') %>% group_by(cat) %>% summarise(.median=boxplot.stats(sentiWords)$stats[3])
+write.csv(medians, file = '../output/metainfo_wordlists/AND_medians_clusterAnalysis_incl_TARGET_pol.csv', quote = F, row.names = F)
+medians <- dfx_sample %>% filter(CCONJ == 'and') %>% group_by(GEN, TARGET_pol) %>% summarise(.median=median(sentiWords))
+write.csv(medians, file = '../output/metainfo_wordlists/AND_medians_clusterAnalysis_excl_TARGET_pol.csv', quote = F, row.names = F)
+
 
 ggplot(dfx_sample %>% filter(CCONJ == 'but')) +
   geom_boxplot(aes(x = as.factor(first), y = sentiWords, fill=TARGET_pol)) 
@@ -173,9 +179,9 @@ ggsave(p, filename = '../output/plots/SUBSAMPLE_overview_only_02_09_20.png', wid
 
 vec <- c('positive', 'negative', 'neutral')
 .labs <- list(
-  title = c('Sentiment Distribution: Positive Target Adjectives', 
-            'Sentiment Distribution: Negative Target Adjectives',
-            'Sentiment Distribution: Neutral Target Adjectives'),
+  title = c('Observed Sentiment Distribution: Positive Target Adjectives', 
+            'Observed Sentiment Distribution: Negative Target Adjectives',
+            'Observed Sentiment Distribution: Neutral Target Adjectives'),
   caption = c(
       abbrv(
         paste0('NUMBER OF NON-UNIQUE ADJ:   ',
@@ -296,6 +302,62 @@ for(i in vecs){
   write.csv(g, file = paste0('../output/metainfo_wordlists/', i, '.csv'), row.names = F)
 }
 
+############################################################################################### 
+################################# DISTRIBUTION PER CAT ########################################
+###############################################################################################
+means_OV <- dfx_sample %>% group_by(GEN, TARGET_pol, CCONJ) %>% 
+  summarise(sentiWords = mean(sentiWords, na.rm = T))
+plist <- list()
+for(i in 1:3){
+  if(i == 3)  plist[[i+1]] <- ggplot(dfx_sample %>% filter(TARGET_pol == vec[i], CCONJ == 'and'), aes(y=sentiWords, x=GEN, fill=CCONJ)) + 
+      geom_hline(aes(yintercept=0), lty='dashed') +
+      geom_boxplot(outlier.shape = NA) + 
+      geom_point(data = means_OV %>% filter(TARGET_pol == vec[i], CCONJ == 'and'), aes(y=sentiWords, x=GEN
+                                                                                    #, colour=CCONJ
+      )) +
+      geom_point(data = means_OV %>% filter(TARGET_pol == vec[i], CCONJ == 'and'), aes(y=sentiWords, x=GEN), shape=1) +
+      #scale_color_manual(values = rev(newcols)) +
+      #scale_fill_manual(values = rev(newcols)) +
+      guides(color = FALSE) +
+      theme(
+        plot.title = element_text(face= 'bold'),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.background = element_rect(fill = alpha(vec_cols[i], 0.2)),
+        legend.position = 'top'
+      ) +
+      labs(
+        #fill = 'CCONJ',
+        y = 'sentiWords Score\nfor lemma#pos:#a (adjectives)'
+      )
+  plist[[i]] <- ggplot(dfx_sample %>% filter(TARGET_pol == vec[i]), aes(y=sentiWords, x=GEN
+                                                                        #, fill=CCONJ
+  )) + 
+    geom_hline(aes(yintercept=0), lty='dashed') +
+    geom_boxplot(outlier.shape = NA) + 
+    geom_point(data = means_OV %>% filter(TARGET_pol == vec[i], CCONJ == 'and'), aes(y=sentiWords, x=GEN
+                                                                                  #, colour=CCONJ
+    )) +
+    geom_point(data = means_OV %>% filter(TARGET_pol == vec[i], CCONJ == 'and'), aes(y=sentiWords, x=GEN), shape=1) +
+    #facet_grid(~cat, scales = 'free_x', drop = T) +
+    scale_color_manual(values = rev(newcols)) +
+    scale_fill_manual(values = rev(newcols)) +
+    guides(color = FALSE) +
+    theme(
+      plot.title = element_text(face= 'bold'),
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      panel.background = element_rect(fill = alpha(vec_cols[i], 0.2)),
+      #legend.position = 'right'
+    ) +
+    labs(x="Target Adjective Category",  y = 'sentiWords Score\nfor lemma#pos:#a (adjectives)',
+         title = abbrv(.labs[['title']][i], width = ifelse(vec[i]=='neutral', 30,50))
+         # ,caption = .labs[['caption']][i]
+    )
+}
+
+ggsave(plist[[1]], file='../output/plots/AND-SUBSAMPLE_CAT_POS_only_09_10_20.png', height = 3.5, width = 6)
+ggsave(plist[[2]], file='../output/plots/AND-SUBSAMPLE_CAT_NEG_only_09_10_20.png', height = 3.5, width = 6)
+#ggsave(plist[[3]], file='../output/plots/VALASSOC_only.png', height = 4, width = 6)
+ggsave(plist[[3]], file='../output/plots/AND-SUBSAMPLE_CAT_NEUTRAL_only_09_10_20.png', height = 4, width = 4)
 
 ############################################################################################### 
 ################################### MEANS PER TARGET ##########################################
