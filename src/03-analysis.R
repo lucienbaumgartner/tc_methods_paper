@@ -88,6 +88,8 @@ annot <- tokens_lookup(tokens(unique(dfx$TARGET_mod)), dictionary = sentiWords$n
 annot <- tibble(TARGET_mod = unique(dfx$TARGET_mod), TARGET_mod_pol = as.numeric(sapply(annot, function(x) x[1])))
 dfx <- left_join(dfx, annot)
 
+save(dfx, file = '/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/ML_corpus.RDS')
+
 table(is.na(dfx$TARGET_mod_pol))/nrow(dfx)
 table(is.na(dfx$ADV_pol))/nrow(dfx)
 
@@ -121,9 +123,11 @@ means_OV <- dfx_sample %>% group_by(GEN, CCONJ) %>%
 # Medians for Kevin's Cluster-Analysis
 medians <- dfx_sample %>% filter(CCONJ == 'and') %>% group_by(cat) %>% summarise(.median=boxplot.stats(sentiWords)$stats[3])
 write.csv(medians, file = '../output/metainfo_wordlists/AND_medians_clusterAnalysis_incl_TARGET_pol.csv', quote = F, row.names = F)
-medians <- dfx_sample %>% filter(CCONJ == 'and') %>% group_by(GEN, TARGET_pol) %>% summarise(.median=median(sentiWords))
+medians <- dfx_sample %>% filter(CCONJ == 'and', TARGET_pol=='positive') %>% group_by(GEN) %>% summarise(.median=median(sentiWords))
 write.csv(medians, file = '../output/metainfo_wordlists/AND_medians_clusterAnalysis_excl_TARGET_pol.csv', quote = F, row.names = F)
+boxplot.stats()
 
+boxplot(dfx_sample$sentiWords[dfx_sample$CCONJ=='and' & dfx_sample$TARGET_pol=='positive' & dfx_sample$GEN=='thick_moral_concepts'])
 
 ggplot(dfx_sample %>% filter(CCONJ == 'but')) +
   geom_boxplot(aes(x = as.factor(first), y = sentiWords, fill=TARGET_pol)) 
@@ -329,7 +333,7 @@ for(i in 1:3){
         #fill = 'CCONJ',
         y = 'sentiWords Score\nfor lemma#pos:#a (adjectives)'
       )
-  plist[[i]] <- ggplot(dfx_sample %>% filter(TARGET_pol == vec[i]), aes(y=sentiWords, x=GEN
+  plist[[i]] <- ggplot(dfx_sample %>% filter(TARGET_pol == vec[i], CCONJ=='and'), aes(y=sentiWords, x=GEN
                                                                         #, fill=CCONJ
   )) + 
     geom_hline(aes(yintercept=0), lty='dashed') +

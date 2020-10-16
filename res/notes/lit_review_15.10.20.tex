@@ -1,0 +1,94 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc} % usually not needed (loaded by default)
+\usepackage[T1]{fontenc}
+\usepackage[margin=3cm]{geometry}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{caption}
+\usepackage{cancel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{csquotes}
+
+%---------------------------------- NATBIB ----------------------------------%
+\makeatletter
+% natbib: only make year a hyperref, not author
+\let\oldciteauthor\citeauthor
+
+\def\citeauthor#1{{\NoHyper\oldciteauthor{#1}}}
+
+% Patch case where name and year are separated by aysep
+\patchcmd{\NAT@citex}
+  {\@citea\NAT@hyper@{%
+     \NAT@nmfmt{\NAT@nm}%
+     \hyper@natlinkbreak{\NAT@aysep\NAT@spacechar}{\@citeb\@extra@b@citeb}%
+     \NAT@date}}
+  {\@citea\NAT@nmfmt{\NAT@nm}%
+   \NAT@aysep\NAT@spacechar\NAT@hyper@{\NAT@date}}{}{}
+
+% Patch case where name and year are separated by opening bracket
+\patchcmd{\NAT@citex}
+  {\@citea\NAT@hyper@{%
+     \NAT@nmfmt{\NAT@nm}%
+     \hyper@natlinkbreak{\NAT@spacechar\NAT@@open\if*#1*\else#1\NAT@spacechar\fi}%
+       {\@citeb\@extra@b@citeb}%
+     \NAT@date}}
+  {\@citea\NAT@nmfmt{\NAT@nm}%
+   \NAT@spacechar\NAT@@open\if*#1*\else#1\NAT@spacechar\fi\NAT@hyper@{\NAT@date}}
+  {}{}
+  
+\makeatother
+%-------------------------------------------------------------------------------%
+
+%----------------------------------- CUSTOM ------------------------------------%
+%-------------------------------- CITATIONSTYLE
+% define command for possessive citations:
+\newcommand{\citeposs}[1]{\citeauthor{#1}'s (\citeyear{#1})}
+\newcommand{\missingsource}{(\textcolor{blue}{SOURCE})}
+%-------------------------------------------------------------------------------%
+
+\title{Literature Review for Methods Paper}
+\author{Lucien Baumgartner}
+\begin{document}
+\maketitle
+
+\section{Connectives}
+
+\section{What does `Sentiment' in `Sentiment Analysis' Actually Track?}
+
+\citet[326]{Taboada2016} defines \enquote*{sentiment} as \enquote{the expression of subjectivity as either a positive or negative opinion}. In the literature, \enquote*{subjectivity} is often used as an umbrella term for the linguistic expression of subjective belief, emotion, evaluation, or attitude (Wiebe 1994). The linguistics literature on sentiment analysis does not distinguish \enquote*{sentiment} from more specific terms such as \enquote*{valence}, \enquote*{evaluativeness}, \enquote*{thickness}, \enquote*{polarity}, \enquote*{intensity}, or \enquote*{attitude}. Both \enquote*{sentiment} and \enquote*{subjectivity} appear to be philosophically underdetermined, ultimately begging the question what we are actually measuring with lexical sentiment values. A comprehensive answer is not possible within the scope of this paper. We rather suggest to use \textit{binary} sentiment values (positive/negative) as loose indicators of an underdetermined valence combined with polarity, whereas \textit{scalar} sentiment additionally includes intensity ratings. Thus, we will not be able to use sentiment as such as a direct indicator of more precise concepts such as \enquote*{thickness}. Measuring general valence, however, allows us to apply sentiment analysis indiscriminately across philosophical classes, such as thick and thin concepts, non-moral and moral evaluative concepts, value-associated concepts, and descriptive concepts. Our aim thus can be stated as to investigate whether these existing philosophical classifications can be distinguished as different strata on a general valence scale provided by  sentiment indicators. Put differently, we set out to measure whether the \textit{theoretical} classifications correlate with distinct \enquote*{ankers} along an \textit{empirico-linguistic} bipolar valence continuum. If this is the case, we should be able to machinally classify concepts philosophically using linguistic valence indicators. It is important to note that our studies cannot falsify the theoretical classifications, e.g., in the case we do not find distinct valence strata for different classes of concepts. Failing to discriminate between the concept classes would only indicate the inadequacy of the empirical indicator (i.e. sentiment), not the falsity of the theoretical classification.
+
+
+
+\citet{Taboada2016}
+
+
+\section{Ideas to Develop Our Existing Methods}
+
+I think it would be best to remove study 3 from the methods paper and focus on finding measures we can integrate in our existing account and attenuate some of the concerns voiced during the Xphi Talk. I suggest the following changes:
+
+\begin{enumerate}
+\item fenwegjb
+\end{enumerate}
+
+These changes should also me applied to the sentiment aggregation for the LTCP. For the LTPC, we will also need to counter the lexical domain-specificity objection voiced by Markus, i.e. that in formal discourse some adjectives might be used more evaluatively than in every day-discourse. Regarding our timeline, I'd suggest the following:
+
+\begin{itemize}
+\item Late October - Mid November: Adapt sentiment aggregation
+\item Mid November - Early December: Adapt domain-specificity
+\end{itemize}
+
+In order to qualitatively assess our results, it would be great if I could assign Dominic some evaluation tasks. Furthermore, we should think about a expanding our whole approach in January and February 2021 towards an ML-based framework. Since I have already worked unsupervised ML methods, I should be able to do this. I would nonetheless like to have someone to check on my work. Potential collaborators would include Anton Obukhov (Doctoral Researcher, ETHZ, Department of Information Technology and Electrical Engineering), Prof. Dr. Jonathan B. Slapin (IPZ, Political Institutions and European Government), Maël Kubli (Scientific Assistant post MA, IPZ, Digital Democracy Lab).
+
+\pagebreak
+
+\bibliographystyle{apalike}
+\bibliography{bib-methods}
+
+\end{document}
