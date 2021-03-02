@@ -24,38 +24,35 @@
 ## ---------------------------
 
 
-#######################
-##### 1 Libraries #####
-#######################
-
+## ---------------------------
+######## 1 Libraries #########
+## ---------------------------
 library(dplyr)
 library(emmeans)
 library(nnet)
 library(viridis)
 rm(list =ls())
 
-###################################
-##### 2 Set working directory #####
-###################################
 
+## ---------------------------
+## 2 Set working directory ###
+## ---------------------------
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 getwd()
 
-##################
-##### 3 UDFs #####
-##################
-
+## ---------------------------
+########## 3 UDFs ############
+## ---------------------------
 abbrv <- function(x, width = 200) lapply(strwrap(x, width, simplify = FALSE), paste, collapse="\n")
 
-#######################
-##### 4 Load data #####
-#######################
-
+## ---------------------------
+######## 4 Load data #########
+## ---------------------------
 load('/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/ML_corpus.RDS')
 
-####################
-##### 5 Models #####
-####################
+## ---------------------------
+######### 5 Models  ##########
+## ---------------------------
 
 ## ---------------------------
 ## m1: sentiment ~ polarity (pos/neg)

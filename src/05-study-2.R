@@ -1,3 +1,31 @@
+## ---------------------------
+##
+## Script name: 05-study-2.R
+##
+## Project: Tracing Thick Concepts
+##
+## Purpose of script: Study 2
+##
+## Author: Lucien Baumgartner
+##
+## Date created: 23.02.2021
+##
+## Email: lucienbaumgartner@philos.uzh.ch
+##
+## ---------------------------
+##
+## Notes:
+##    Not all of the analyses
+##    and results in this 
+##    script were used in the
+##    final paper
+##
+## ---------------------------
+
+
+## ---------------------------
+######## 1 Libraries #########
+## ---------------------------
 library(quanteda)
 library(dplyr)
 library(openxlsx)
@@ -9,15 +37,28 @@ library(Ckmeans.1d.dp) # univariate k-means
 library(utc)
 library(nnet)
 library(MNLpred)
-
 rm(list=ls())
 
+## ---------------------------
+## 2 Set working directory ###
+## ---------------------------
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+getwd()
 
+## ---------------------------
+########## 3 UDFs ############
+## ---------------------------
 abbrv <- function(x, width = 200) lapply(strwrap(x, width, simplify = FALSE), paste, collapse="\n")
 
+## ---------------------------
+######## 4 Load data #########
+## ---------------------------
 kdata <- read.xlsx('../input/Study 2 Results.xlsx') %>% .[-ncol(.)] %>%  as_tibble()
-# complete Type var
+
+## ---------------------------
+######### 5 Analysis #########
+## ---------------------------
+## Complete Type var
 index <- c(grep('.*', kdata$Type), length(kdata$Type)+1)
 reps <- na.omit(abs(lag(index)-index))
 repl <- rep(na.omit(kdata$Type), reps)
@@ -26,7 +67,8 @@ cbind(repl, kdata$Type)
 kdata$Type <- repl
 write.table(kdata, file = '../input/study2_results.csv', sep = ',', row.names = F)
 
-### hierarchical cluster analysis
+## ---------------------------
+## Hierarchical cluster analysis & dendogram
 varsel <- grep('Eval\\.', colnames(kdata), value = T)
 clusdata <- kdata[, varsel] %>%  as.data.frame()
 rownames(clusdata) <- kdata$Adjective
@@ -49,7 +91,9 @@ p <- p +
 p
 ggsave(p, filename = '../output/paper/paper_study2_dendogramm.pdf', height = 6, width = 10)
 
-### univariate k-means
+## ---------------------------
+## Univariate k-means (does not work better)
+## Might be removed in the final version, since it is not part of the results
 kdata
 uvres <- Ckmeans.1d.dp(kdata$Eval.Weight)
 
@@ -66,12 +110,13 @@ p <- ggplot(aggr, aes(x = Eval.Weight, y = Adjective)) +
   ) 
 p
 
-### multinomial probit model
+## ---------------------------
+## Multinomial probit model
 kdata$Type2 <- relevel(factor(kdata$Type), ref = "Value-Associated")
 kdata <- filter(kdata, !Adjective == c('awful', 'disgusting'))
 range(kdata$Eval.Weight)
 m1 <- multinom(Type2 ~ Eval.Weight, data = kdata, Hess = T)
-
+## Predictions
 preds <- mnl_pred_ova(
   model = m1, 
   data = kdata,
@@ -81,7 +126,7 @@ preds <- mnl_pred_ova(
   nsim = 100,
   probs = c(0.025, 0.975)
 )
-
+## Plot loop for plot panel
 plist <- list()
 for(i in 1:length(levels(kdata$Type2))){
   index <- levels(kdata$Type2)[i]
@@ -131,6 +176,8 @@ p <- grid.arrange(
 
 ggsave(p, filename = '../output/paper/paper_study2_class_membership_MNL.pdf', width = 5, height = 7)
 
+## ---------------------------
+## First version of the panel, might be removed in the final version
 p <- ggplot(preds$plotdata, aes(x=Eval.Weight, y=mean, ymin = lower, ymax = upper)) +
   geom_ribbon(alpha = 0.1, colour = NA) +
   geom_line() +
@@ -147,13 +194,14 @@ p <- ggplot(preds$plotdata, aes(x=Eval.Weight, y=mean, ymin = lower, ymax = uppe
   )
 p
 
-## eval vs non-eval multinomial logit
+## ---------------------------
+## Eval vs non-eval logit model
 kdata$evalType <- factor(ifelse(kdata$Type %in% c('Value-Associated', 'Descriptive'), 'non-eval', 'eval'))
 kdata$evalType <- relevel(kdata$evalType, ref = 'non-eval')
 kdata <- filter(kdata, !Adjective == c('awful', 'disgusting'))
 range(kdata$Eval.Weight)
 m2 <- glm(evalType ~ Eval.Weight, data = kdata, family = "binomial")
-
+## Predictions
 newData <- data.frame(Eval.Weight = seq(0, max(kdata$Eval.Weight), 0.01))
 newData <- cbind(newData, predict(m2, newData, type = 'link', se =T))
 newData <- within(newData, {
@@ -161,7 +209,7 @@ newData <- within(newData, {
   LL <- plogis(fit - (1.96 * se.fit))
   UL <- plogis(fit + (1.96 * se.fit))
 })
-
+## Plot
 p <- ggplot(newData, aes(x = Eval.Weight, y = PredictedProb)) + 
   geom_ribbon(aes(ymin = LL, ymax = UL), alpha = 0.2) + 
   geom_line() +
@@ -177,7 +225,9 @@ p <- ggplot(newData, aes(x = Eval.Weight, y = PredictedProb)) +
   )
 ggsave(p, filename = '../output/paper/paper_study2_EvalvsNonEval_logit.pdf', width = 8, height = 5)
 
-# robustness-checks for truly/really ratios
+## ---------------------------
+## Robustness-checks for truly/really ratios
+## load data
 rm(list=ls())
 files <- list.files('../output/00-sweep/study2/', full.names = T)
 files <- files[!grepl('(s|S)hiny', files)]
@@ -189,12 +239,14 @@ df <- lapply(files, function(x){
   tmp <- select(tmp, -txt)
   return(tmp)
 })
-# we had issues with short! we will thus approximate the data
+
+## ---------------------------
+## we had issues with short! we will thus approximate the data
 df <- do.call(rbind, df)
 df <- as_tibble(df)
 df <- mutate(df, mod = gsub('\\_.*', '', fileName), target = gsub('.*\\_', '', fileName))
 df <- mutate(df, mod = ifelse(mod == target, 'none', mod))
-# sanitize short
+## sanitize short
 short <- filter(df, target == 'short')
 short <- short %>% 
   group_by(mod, created_utc) %>% 
@@ -210,24 +262,16 @@ expandr$mod <- 'none'
 expandr$target <- 'short'
 shortAdd <- expandr %>% group_by(target, mod) %>% summarise(n = round(sum(n)))
 
-# check that time checks out
-aggs <- df %>% 
-  group_by(target, mod, created_utc) %>% 
-  summarise(n = n())
-p <- ggplot(aggs, aes(x=created_utc, y = n, colour = mod, group = mod)) +
-  geom_line() +
-  facet_grid(target~.)
-p
-ggsave(p, filename = '../output/plots/robustness-checks-study2_time_check.png')
-
+## ---------------------------
+## create table
 fin <- df %>% 
   group_by(target, mod) %>% 
   summarise(n = n())
 fin <- dcast(fin, 'target~mod')
-# add short
+## add short
 fin[fin$target == 'short', 'none'] <- (fin[fin$target == 'short', 'none'] + shortAdd$n)
 fin <- mutate(fin, perc_really = really/none*100, perc_truly = truly/none*100, Eval.Weight = perc_really+perc_truly, none = as.integer(none))
-# add timeframe
+## add timeframe
 time <- df %>% group_by(target) %>% summarise(t2 = min(created_utc), t1 = max(created_utc))
 time <- time %>% mutate(t2 = as.POSIXct(t2, origin='1970-01-01'), t1 = as.POSIXct(t1, origin='1970-01-01'), t_diff = difftime(t1,t2,units = 'days'))
 fin <- left_join(fin, time)
