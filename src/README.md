@@ -10,3 +10,6 @@ The data for Study 2 has been collected using [The Corpus of Contemporary Americ
 
 ## Analyses
 The analyses require corpus data, which can either be requested via email at lucien.baumgartner@philos.uzh.ch, or collected locally by running the scripts xx--yy. The analyses for Study 1 & 2 can be found at `src/xx-study-1.R` and `src/xx-study-2.R`, respectively. All plot results are available at `output/paper/`, and are reproducible with the aforementioned scripts.
+
+## Additional material
+`src/unused_classifiers/` contains additional classifiers that have not been included in the paper, but give an insight on how to use our indicators in a classification framework.

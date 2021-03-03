@@ -241,7 +241,7 @@ for(m in search.terms$word){
     
     ## ---------------------------
     ## Saving process and meta-updates
-    out <- paste0('../output/00-sweep/', m, '.csv')
+    out <- paste0('../output/00-sweep/study1/', m, '.csv')
     ## If file doesn't exist, make it
     if(!file.exists(out)){
       write.csv(df, file=out, row.names = F)
