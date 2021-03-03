@@ -15,8 +15,7 @@
 ## ---------------------------
 ##
 ## Notes:
-##    These models were not
-##    used in the final paper
+##    DO NOT RUN
 ##
 ## ---------------------------
 

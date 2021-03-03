@@ -2,11 +2,11 @@
 
 ## ---------------------------
 ##
-## Script name: xx-lookup-to-finalize.R
+## Script name: xx-make-corpus.R
 ##
 ## Project: Tracing Thick Concepts
 ##
-## Purpose of script: Extract lexical and syntactic matches and create single corpus (local)
+## Purpose of script: Sentiment annotation and final corpus generation (local)
 ##
 ## Author: Lucien Baumgartner
 ##
@@ -77,6 +77,17 @@ annot <- tibble(TARGET = unique(df$TARGET), TARGET_pol = sapply(annot, function(
 neutrals <- kw %>% filter(cat == 'descriptive_concepts') %>% pull(TARGET) # isolate descriptive concepts
 annot <- annot %>% mutate(TARGET_pol = ifelse(TARGET %in% neutrals, 'neutral', TARGET_pol)) # give them a neutral polarity
 df <- left_join(df, annot) # join annot to corpus
+## For both modifier positions
+annot <- tokens_lookup(tokens(unique(df$ADV)), dictionary = sentiWords$num)
+annot <- tibble(ADV = unique(df$ADV), ADV_pol = as.numeric(sapply(annot, function(x) x[1])))
+df <- left_join(df, annot)
+annot <- tokens_lookup(tokens(unique(df$TARGET_mod)), dictionary = sentiWords$num)
+annot <- tibble(TARGET_mod = unique(df$TARGET_mod), TARGET_mod_pol = as.numeric(sapply(annot, function(x) x[1])))
+df <- left_join(df, annot)
+
+## ---------------------------
+#### 6 Additional changes ####
+## ---------------------------
 ## Join keyword data
 df <- left_join(df, kw)
 ## Sanitize CCONJ
@@ -87,44 +98,16 @@ df <- filter(df, !(sentiWords == 0 | is.na(sentiWords)))
 df <- df %>% mutate(ADV_dummy = ifelse(is.na(ADV), 0, 1),
                     TARGET_pol_mod_dummy = ifelse(is.na(TARGET_mod), 0, 1))
 
+## ---------------------------
+########## 7 Specs ###########
+## ---------------------------
+tp <- table(df$TARGET_mod) %>% sort %>% tail(., 30) %>% as.data.frame() %>% arrange(desc(Freq)) %>% rename(modifierTARGET = Var1)
+write.table(tp, '../output/metainfo_wordlists/top30_modifiers_of_target_ADJ.txt', quote = F, row.names = F, sep = ';')
+tp <- table(df$ADJ) %>% sort %>% tail(., 30) %>% as.data.frame() %>% arrange(desc(Freq)) %>% rename(ADJ = Var1)
+write.table(tp, '../output/metainfo_wordlists/top30_conj_ADJ.txt', quote = F, row.names = F, sep = ';')
 
-save(df, file = '/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/corpus_redone.RDS')
-load('/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/corpus_redone.RDS')
-rm(annot)
-rm(sentiWords)
-
-
-tp <- table(dfx$TARGET_mod) %>% sort %>% tail(., 30) %>% as.data.frame() %>% arrange(desc(Freq)) %>% rename(modifierTARGET = Var1)
-write.table(tp, '../output/metainfo_wordlists/operation_pony_top30_modifiers_of_target_ADJ_SAMPLE.txt', quote = F, row.names = F, sep = ';')
-tp <- table(dfx$ADJ) %>% sort %>% tail(., 30) %>% as.data.frame() %>% arrange(desc(Freq)) %>% rename(ADJ = Var1)
-write.table(tp, '../output/metainfo_wordlists/operation_pony_top30_ADJ_SAMPLE.txt', quote = F, row.names = F, sep = ';')
-
-dfx <- left_join(dfx, kw)
-dfx <- filter(dfx, !is.na(sentiWords))
-means <- dfx %>% group_by(TARGET, CCONJ, cat) %>% 
-  summarise(sentiWords = mean(sentiWords, na.rm = T))
-means
-
-# annotate the conjuncts
-annot <- tokens_lookup(tokens(unique(dfx$TARGET)), dictionary = sentiWords$dichot)
-annot <- tibble(TARGET = unique(dfx$TARGET), TARGET_pol = sapply(annot, function(x) x[1]))
-neutrals <- kw %>% filter(cat == 'descriptive_concepts') %>% pull(TARGET)
-#valAssocs <- kw %>% filter(cat == 'descriptive_concepts') %>% pull(TARGET)
-annot <- annot %>% mutate(TARGET_pol = ifelse(TARGET %in% neutrals, 'neutral', TARGET_pol))
-dfx <- left_join(dfx, annot)
-means <- left_join(means, annot)
-
-# make dumme for modifier
-dfx <- dfx %>% mutate(ADV_dummy = ifelse(is.na(ADV), 0, 1),
-                      TARGET_pol_mod_dummy = ifelse(is.na(TARGET_mod), 0, 1))
-
-# annotate the modifiers
-annot <- tokens_lookup(tokens(unique(dfx$ADV)), dictionary = sentiWords$num)
-annot <- tibble(ADV = unique(dfx$ADV), ADV_pol = as.numeric(sapply(annot, function(x) x[1])))
-dfx <- left_join(dfx, annot)
-annot <- tokens_lookup(tokens(unique(dfx$TARGET_mod)), dictionary = sentiWords$num)
-annot <- tibble(TARGET_mod = unique(dfx$TARGET_mod), TARGET_mod_pol = as.numeric(sapply(annot, function(x) x[1])))
-dfx <- left_join(dfx, annot)
-
-save(dfx, file = '/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/ML_corpus.RDS')
+## ---------------------------
+########### 8 Save ###########
+## ---------------------------
+save(df, file = '/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/ML_corpus.RDS')
 

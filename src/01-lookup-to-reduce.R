@@ -1,6 +1,6 @@
 ## ---------------------------
 ##
-## Script name: 00b-sweep.R
+## Script name: 01-lookup-to-reduce.R
 ##
 ## Project: Tracing Thick Concepts
 ##
@@ -8,7 +8,7 @@
 ##
 ## Author: Lucien Baumgartner
 ##
-## Date created: 12.11.2021
+## Date created: 30.06.2020
 ##
 ## Email: lucienbaumgartner@philos.uzh.ch
 ##

@@ -123,6 +123,7 @@ confusionMatrix(predictions, validation$TARGET_pol)
 ## Different performance measures
 confusionMatrix(predictions, validation$TARGET_pol, mode = "prec_recall")
 
+## ---------------------------
 ## Save models
 time_index <- as.numeric(toUTC(Sys.time()))
 time_index <- as.character(time_index)

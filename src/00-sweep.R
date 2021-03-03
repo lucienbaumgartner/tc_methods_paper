@@ -10,7 +10,7 @@
 ##
 ## Author: Lucien Baumgartner
 ##
-## Date created: 12.11.2021
+## Date created: 13.09.2020
 ##
 ## Email: lucienbaumgartner@philos.uzh.ch
 ##
@@ -203,7 +203,7 @@ for(m in search.terms$word){
     rm(corpus)
     df <- mutate(df, corpus = as.character(corpus))
     
-    ## Extract matches and add tehm to df
+    ## Extract matches and add them to df
     reg_matches <- mclapply(df$corpus, function(x) stringr::str_extract_all(x, .lookup), mc.cores=4)
     reg_matches <- unlist(reg_matches, recursive=F)
     df <- cbind(df[rep(1:nrow(df), lengths(reg_matches)),], match=unlist(reg_matches)) %>% as_tibble

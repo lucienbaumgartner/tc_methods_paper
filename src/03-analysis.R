@@ -14,13 +14,23 @@ library(scales)
 library(emmeans)
 rm(list=ls())
 
+## ---------------------------
+## 2 Set working directory ###
+## ---------------------------
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 getwd()
 
+## ---------------------------
+########## 3 UDFs ############
+## ---------------------------
 abbrv <- function(x, width = 200) lapply(strwrap(x, width, simplify = FALSE), paste, collapse="\n")
-kw <- read.table('../input/dict_rerun_02_09_20.txt', stringsAsFactors = F, sep=',', header = T) %>% rename(TARGET = word)
 
+## ---------------------------
+######## 4 Load data #########
+## ---------------------------
+kw <- read.table('../input/dict_rerun_02_09_20.txt', stringsAsFactors = F, sep=',', header = T) %>% rename(TARGET = word)
 load('/Volumes/INTENSO/methods_paper/output/02.5-makro/makro.RDS')
+
 #load('/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/new-reddit.RDS')
 #df <- reddit
 #rm(reddit)
