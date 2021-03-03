@@ -1,4 +1,29 @@
 # !diagnostics off
+
+## ---------------------------
+##
+## Script name: 02-lookup-to-finalize.R
+##
+## Project: Tracing Thick Concepts
+##
+## Purpose of script: Extract lexical and syntactic matches and create single corpus (local)
+##
+## Author: Lucien Baumgartner
+##
+## Date created: 20.11.2021
+##
+## Email: lucienbaumgartner@philos.uzh.ch
+##
+## ---------------------------
+##
+## Notes:
+##    DO NOT RUN
+##
+## ---------------------------
+
+## ---------------------------
+######## 1 Libraries #########
+## ---------------------------
 library(dplyr)
 library(stringr)
 library(spacyr)
@@ -6,13 +31,26 @@ library(gtools)
 library(tokenizers)
 library(pbmcapply)
 library(stringr)
-
 rm(list=ls())
-setwd('~/tc_methods_paper/src')
 
+## ---------------------------
+## 2 Set working directory ###
+## ---------------------------
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+#setwd('~/tc_methods_paper/src')
+getwd()
+
+## ---------------------------
+######## 3 Load data #########
+## ---------------------------
 datasets <- list.files('/Volumes/INTENSO/methods_paper/output/01-reduced-corpora/baseline/reddit', full.names = T, pattern = 'new')
 search.terms <- read.table('../input/dict_rerun_02_09_20.txt', header = T, stringsAsFactors = F, sep=',')
 
+## ---------------------------
+########### 4 UDFs ###########
+## ---------------------------
+## formulate the regex to extract specific regex matches from responses
+## according to PoS-tags
 syntax.regex <- '(ADV\\s)?ADJ\\s(PUNCT\\s)?CCONJ\\s(ADV\\s)?ADJ'
 make_regex <- function(INDEX){
   TARGET = paste0('\\\\b',df$TARGET[INDEX], '\\\\b')
@@ -60,51 +98,49 @@ make_regex <- function(INDEX){
   if(is.list(tmp)|is.null(tmp)) return(tmp)
 }
 
-
+## ---------------------------
+###### 4 Annotate Data #######
+## ---------------------------
 for(i in datasets){
-  
   #i=datasets[1]
   load(i)
   print(i)
+  ## Annotate lexical data
   df <- mutate(df, TARGET = strsplit(gsub('\\,', '', match), '\\s'))
   df <- mutate(df, CCONJ = sapply(TARGET, function(x) return(x[x %in% c('and', 'but')][1])))
   df <- mutate(df, TARGET = sapply(TARGET, function(x) return(x[x %in% search.terms$word][1])))
   df <- mutate(df, comma = grepl('\\,', match))
-  
+  ## Extract matches
   txtparsed <- spacy_parse(tolower(df$corpus), pos = TRUE)
   txtparsed <- split(txtparsed, txtparsed$doc_id, lex.order = F)
   txtparsed <- txtparsed[mixedsort(names(txtparsed))]
   txtparsed <- pbmclapply(txtparsed, function(x) x$lemma %>% setNames(., x$pos), mc.cores = 4)
-  
-  system.time(txtparsed_adj <- pbmclapply(1:length(txtparsed), make_regex, mc.cores=4))
-  #system.time(txtparsed_adj <- lapply(1:length(txtparsed), make_regex))
-  
-  #df <- rename(df, comma_check = comma, TARGET_check = TARGET, CCONJ_check = CCONJ)
+  txtparsed_adj <- pbmclapply(1:length(txtparsed), make_regex, mc.cores=4)
+  ## Reduce initial response according to the occurence of target structures (nrow X n matches)
   reps <- unlist(lapply(sapply(txtparsed_adj, nrow), function(x) ifelse(is.null(x), 0, x)))
   df <- df[rep(1:nrow(df), reps),]
   txtparsed_adj <- do.call(rbind, txtparsed_adj)
-  #txtparsed_adj <- mutate(txtparsed_adj, id=df$id)
-  #txtparsed_adj <- select(txtparsed_adj, -id)
   df <- rename(df, match_first = match)
   df <- cbind(df, txtparsed_adj)
   df <- as_tibble(df)
-  #table(df$TARGET)
   df <- filter(df, TARGET%in%search.terms$word)
-  #table(df$TARGET)
+  ## Save data
   out <- paste0('/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/', gsub('.*\\/', '', i))
   save(df, file = out)
-  
 }
 
-### generate full corpus
+## ---------------------------
+#### 5 Generate One Corpus ###
+## ---------------------------
+## Get filepaths
 fileslist <- list.files('/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/', full.names = T, pattern = 'new\\-')
 reddit <- pbmclapply(fileslist, function(x){
   load(x)
   return(df)
 }, mc.cores = 4)
-
+## Collect data
 reddit <- do.call(rbind, reddit)
 reddit <- as_tibble(reddit)
 reddit <- mutate(reddit, context = 'reddit')
-
+## Save data
 save(reddit, file = '/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/new-reddit.RDS', compress = T)
