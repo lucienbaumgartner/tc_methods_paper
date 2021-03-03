@@ -35,7 +35,7 @@ kw <- read.table('../input/dict_rerun_02_09_20.txt', stringsAsFactors = F, sep='
 load('../res/sentiWords-db.RDS')
 ## Sweep data
 plist <- list()
-for(i in list.files('/Volumes/INTENSO/methods_paper/output/00-sweep/', full.names = T)){
+for(i in list.files('../output/00-sweep/study1/', full.names = T)){
   plist[[i]] <- read.csv(i, stringsAsFactors = F)
 }
 df <- do.call(rbind, plist)
@@ -44,7 +44,7 @@ df <- mutate(df, context = 'reddit')
 
 ## ---------------------------
 ## Traditional calls
-load('/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/new-reddit.RDS')
+load('../output/02-finalized-corpora/new-reddit.RDS')
 names(reddit)
 names(df)
 
@@ -102,12 +102,12 @@ df <- df %>% mutate(ADV_dummy = ifelse(is.na(ADV), 0, 1),
 ########## 7 Specs ###########
 ## ---------------------------
 tp <- table(df$TARGET_mod) %>% sort %>% tail(., 30) %>% as.data.frame() %>% arrange(desc(Freq)) %>% rename(modifierTARGET = Var1)
-write.table(tp, '../output/metainfo_wordlists/top30_modifiers_of_target_ADJ.txt', quote = F, row.names = F, sep = ';')
+write.table(tp, '../output/03-corpus/metainfo_wordlists/top30_modifiers_of_target_ADJ.txt', quote = F, row.names = F, sep = ';')
 tp <- table(df$ADJ) %>% sort %>% tail(., 30) %>% as.data.frame() %>% arrange(desc(Freq)) %>% rename(ADJ = Var1)
-write.table(tp, '../output/metainfo_wordlists/top30_conj_ADJ.txt', quote = F, row.names = F, sep = ';')
+write.table(tp, '../output/03-corpus/metainfo_wordlists/top30_conj_ADJ.txt', quote = F, row.names = F, sep = ';')
 
 ## ---------------------------
 ########### 8 Save ###########
 ## ---------------------------
-save(df, file = '/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/ML_corpus.RDS')
+save(df, file = '../output/03-corpus/ML_corpus.RDS')
 

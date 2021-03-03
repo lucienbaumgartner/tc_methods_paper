@@ -43,7 +43,7 @@ getwd()
 ## ---------------------------
 ######## 3 Load data #########
 ## ---------------------------
-datasets <- list.files('/Volumes/INTENSO/methods_paper/output/01-reduced-corpora/baseline/reddit', full.names = T, pattern = 'new')
+datasets <- list.files('../output/01-reduced_corpora/', full.names = T, pattern = 'new')
 search.terms <- read.table('../input/dict_rerun_02_09_20.txt', header = T, stringsAsFactors = F, sep=',')
 
 ## ---------------------------
@@ -125,7 +125,7 @@ for(i in datasets){
   df <- as_tibble(df)
   df <- filter(df, TARGET%in%search.terms$word)
   ## Save data
-  out <- paste0('/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/', gsub('.*\\/', '', i))
+  out <- paste0('../output/02-finalized_corpora/', gsub('.*\\/', '', i))
   save(df, file = out)
 }
 
@@ -133,7 +133,7 @@ for(i in datasets){
 #### 5 Generate One Corpus ###
 ## ---------------------------
 ## Get filepaths
-fileslist <- list.files('/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/', full.names = T, pattern = 'new\\-')
+fileslist <- list.files('../output/02-finalized_corpora/', full.names = T, pattern = 'new\\-')
 reddit <- pbmclapply(fileslist, function(x){
   load(x)
   return(df)
@@ -143,4 +143,4 @@ reddit <- do.call(rbind, reddit)
 reddit <- as_tibble(reddit)
 reddit <- mutate(reddit, context = 'reddit')
 ## Save data
-save(reddit, file = '/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/new-reddit.RDS', compress = T)
+save(reddit, file = '../output/02-finalized_corpora/new-reddit.RDS', compress = T)

@@ -40,7 +40,7 @@ getwd()
 ## ---------------------------
 ######## 3 Load data #########
 ## ---------------------------
-datasets <- list.files('/Volumes/INTENSO/methods_paper/output/00-bulk-data/baseline/reddit/raw_aggr', full.names = T, pattern = '\\%22')
+datasets <- list.files('../output/00-bulk-data/', full.names = T, pattern = '\\%22')
 search.terms <- read.table('../input/dict_rerun_02_09_20.txt', header = T, stringsAsFactors = F, sep=',')
 
 ## ---------------------------
@@ -75,6 +75,6 @@ for(i in datasets){
   df <- mutate(df, match = as.character(match))
   df <- as_tibble(df)
   ## Save data
-  out <- paste0('/Volumes/INTENSO/methods_paper/output/01-reduced-corpora/baseline/reddit/new-', gsub('.*\\/', '', i))
+  out <- paste0('../output/01-reduced_corpora/new-', gsub('.*\\/', '', i))
   save(df, file = out, compress = 'gzip')
 }

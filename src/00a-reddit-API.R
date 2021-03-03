@@ -95,7 +95,7 @@ for(m in search.terms$word){
         }
         utc <- stri_extract(i, regex = '(?<=before\\=)([0-9]+)') # date of the call as defined in the URL
         if(nrow(df)>0){
-          out <- paste0('/Volumes/INTENSO/methods_paper/output/00-bulk-data/baseline/reddit/raw/', m, '_', utc, '.RDS')
+          out <- paste0('../output/00-bulk-data/raw/', m, '_', utc, '.RDS')
           save(df, file = out)
         }
       }
@@ -106,18 +106,18 @@ for(m in search.terms$word){
 ## ---------------------------
 ####### 5 Compile Data #######
 ## ---------------------------
-file_paths <- list.files('/Volumes/INTENSO/methods_paper/output/00-bulk-data/baseline/reddit/raw/', full.names = T)
+file_paths <- list.files('../output/00-bulk-data/raw/', full.names = T)
 df <- pbmclapply(file_paths, function(x){
   load(x)
   return(df$body)
 }, mc.cores = 4)
-names(df) <- gsub('\\_.*','', list.files('/Volumes/INTENSO/methods_paper/output/00-bulk-data/baseline/reddit/raw/'))
+names(df) <- gsub('\\_.*','', list.files('../output/00-bulk-data/raw/'))
 for(i in unique(names(df))){
   print(i)
   dta <- unlist(df[grepl(i, names(df))])
   if(!is.null(dta)){
     names(dta) <- i
-    save(dta, file = paste0('/Volumes/INTENSO/methods_paper/output/00-bulk-data/baseline/reddit/raw_aggr/', i, '.RDS'))
+    save(dta, file = paste0('../output/00-bulk-data/raw_aggr/', i, '.RDS'))
   }
 }
 
