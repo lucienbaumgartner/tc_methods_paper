@@ -1,3 +1,28 @@
+## ---------------------------
+##
+## Script name: 00a-reddit-API.R
+##
+## Project: Tracing Thick Concepts
+##
+## Purpose of script: Handler for API calls
+##
+## Author: Lucien Baumgartner
+##
+## Date created: 30.06.2020
+##
+## Email: lucienbaumgartner@philos.uzh.ch
+##
+## ---------------------------
+##
+## Notes:
+##    These models were not
+##    used in the final paper
+##
+## ---------------------------
+
+## ---------------------------
+######## 1 Libraries #########
+## ---------------------------
 library(dplyr)
 library(pbmcapply)
 library(httr)
@@ -8,9 +33,15 @@ library(rlist)
 library(Hmisc)
 rm(list=ls())
 
+## ---------------------------
+## 2 Set working directory ###
+## ---------------------------
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 getwd()
 
+## ---------------------------
+######## 3 Load data #########
+## ---------------------------
 search.terms <- read.table('../input/dict_rerun_02_09_20.txt', header = T, stringsAsFactors = F, sep=',')
 search.terms <- 
   tibble(word=c(paste0('%22', capitalize(search.terms$word), '%20and%22'), 
@@ -18,20 +49,22 @@ search.terms <-
          cat=rep(search.terms$cat, 2),
          cancel=ifelse(grepl('20and%', word), 0, 1))
 
-#subreddit <- '!legaladvice,!Advice'
+## ---------------------------
+##### 4 Formulate Calls ######
+## ---------------------------
+## Set date range
 today <- as.Date('02-09-2020', '%d-%m-%Y')
 end <- as.Date('31-08-2020', '%d-%m-%Y')
 start <- as.Date('31-12-2020', '%d-%m-%Y')
 range_end <- difftime(start, end)
 range_lag <- difftime(today, end)
 
+## ---------------------------
+## URL wrapper
 Lurls <- lapply(search.terms$word, function(x){
   paste0(
     'https://api.pushshift.io/reddit/search/comment/?q=',
     x,
-    #'&',
-    #'subreddit=',
-    #subreddit,
     '&',
     'after=',
     (range_end+range_lag+1):(range_lag+1),
@@ -39,36 +72,29 @@ Lurls <- lapply(search.terms$word, function(x){
     (range_end+range_lag):range_lag,
     'd&sort=dsc&size=1000'
   )})
-
+## name URL list
 names(Lurls) <- search.terms$word
 
+## ---------------------------
+## API calls
 for(m in search.terms$word){
   #m <- search.terms$word[1]
-  urls <- Lurls[[m]]
+  urls <- Lurls[[m]] # extract set uof urls
   print(m)
-  for(i in urls){
+  for(i in urls){ # loop over set of urls
     #i <- urls[1]
     #print(i)
-    #check <- today()-1-as.numeric(stri_extract_first_regex(i, '[0-9]+'))
-    #check <- paste0(m, '_', check, '.RDS') %in% list.files('../output/raw/and_but/')
-    #if(check) next
-    response <- try(GET(i))
-    if(!'try-error' %in% class(response)){
+    response <- try(GET(i)) # get response
+    if(!'try-error' %in% class(response)){ # extract response
       response <- try(content(response))
       if(!'try-error' %in% class(response)&!identical(response, list())){
-        df <- try(do.call(rbind, response$data) %>% as_tibble)
+        df <- try(do.call(rbind, response$data) %>% as_tibble) # easy binder
         if('try-error' %in% class(df)){
           selcols <- list.common(lapply(response$data, names))
-          df <- lapply(response$data, function(x) x[selcols])
+          df <- lapply(response$data, function(x) x[selcols]) # conditional binder based on the most common columns in the response
           df <- do.call(rbind, df) %>% as_tibble
         }
-        #utc <- unlist(df$created_utc)
-        #utc <- as.numeric(utc)
-        #utc <- na.omit(utc)
-        #utc <- anydate(utc)
-        #utc <- na.omit(unique(utc)[1])
-        #utc <- ifelse(is.null(utc), 'not_spec', utc)
-        utc <- stri_extract(i, regex = '(?<=before\\=)([0-9]+)')
+        utc <- stri_extract(i, regex = '(?<=before\\=)([0-9]+)') # date of the call as defined in the URL
         if(nrow(df)>0){
           out <- paste0('/Volumes/INTENSO/methods_paper/output/00-bulk-data/baseline/reddit/raw/', m, '_', utc, '.RDS')
           save(df, file = out)
@@ -78,7 +104,9 @@ for(m in search.terms$word){
   }
 }
 
-
+## ---------------------------
+####### 5 Compile Data #######
+## ---------------------------
 file_paths <- list.files('/Volumes/INTENSO/methods_paper/output/00-bulk-data/baseline/reddit/raw/', full.names = T)
 df <- pbmclapply(file_paths, function(x){
   load(x)
