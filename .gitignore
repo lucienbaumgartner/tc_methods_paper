@@ -6,3 +6,4 @@
 *.RData
 *.csv
 *.txt
+output/00-sweep/
