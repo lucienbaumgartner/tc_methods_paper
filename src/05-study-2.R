@@ -53,7 +53,7 @@ abbrv <- function(x, width = 200) lapply(strwrap(x, width, simplify = FALSE), pa
 ## ---------------------------
 ######## 4 Load data #########
 ## ---------------------------
-kdata <- read.xlsx('../input/Study 2 Results.xlsx') %>% .[-ncol(.)] %>%  as_tibble()
+kdata <- read.xlsx('../input/study2.xlsx') %>% .[-ncol(.)] %>%  as_tibble()
 
 ## ---------------------------
 ######### 5 Analysis #########
@@ -68,6 +68,10 @@ kdata$Type <- repl
 write.table(kdata, file = '../input/study2_results.csv', sep = ',', row.names = F)
 
 ## ---------------------------
+## NOTE:
+kdata <- filter(kdata, !Adjective == c('awful', 'disgusting'))
+
+## ---------------------------
 ## Hierarchical cluster analysis & dendogram
 varsel <- grep('Eval\\.', colnames(kdata), value = T)
 clusdata <- kdata[, varsel] %>%  as.data.frame()
@@ -78,18 +82,19 @@ res <- eclust(clusdata, FUNcluster = 'hclust', hc_method = 'ward.D', hc_metric =
 col_vec <- ifelse(kdata$Type %in% c('Value-Associated', 'Descriptive'), 'darkgrey', 'black')
 col_vec <- col_vec[res$order]
 p <- fviz_dend(res, phylo_layout = 'layout.gem', k_colors ="black", 
-               label_cols = col_vec, cex = 0.9, rect = T, lower_rect = -7,
+               label_cols = col_vec, cex = 0.9, rect = T, lower_rect = -8,
                #horiz = T, 
                lwd = 0.5,
-               main = 'Dendogramm using Ward Linkage')
+               main = ''
+               )
 p
 p_coord <- ggplot_build(p)$data[[4]]
 p <- p + 
   #geom_text(aes(x = p_coord$xmax, y = p_coord$ymin, label = 1:2, hjust = 2, vjust = -.9)) +
   #geom_text(aes(x = p_coord$xmin[1], y = p_coord$ymin[1], label = 'Cluster:', hjust = -.2, vjust = -.9)) +
-  theme(plot.title = element_text(face = 'bold'))
+  theme(plot.title = element_blank())
 p
-ggsave(p, filename = '../output/paper/paper_study2_dendogramm.pdf', height = 6, width = 10)
+ggsave(p, filename = '../output/paper/paper_study2_dendogramm.pdf', height = 6, width = 9)
 
 ## ---------------------------
 ## Univariate k-means (does not work better)
@@ -113,7 +118,6 @@ p
 ## ---------------------------
 ## Multinomial probit model
 kdata$Type2 <- relevel(factor(kdata$Type), ref = "Value-Associated")
-kdata <- filter(kdata, !Adjective == c('awful', 'disgusting'))
 range(kdata$Eval.Weight)
 m1 <- multinom(Type2 ~ Eval.Weight, data = kdata, Hess = T)
 ## Predictions

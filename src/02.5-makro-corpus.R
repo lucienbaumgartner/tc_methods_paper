@@ -25,6 +25,15 @@
 ######## 1 Libraries #########
 ## ---------------------------
 library(dplyr)
+library(quanteda)
+rm(list=ls())
+
+## ---------------------------
+## 2 Set working directory ###
+## ---------------------------
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+#setwd('~/tc_methods_paper/src')
+getwd()
 
 ## ---------------------------
 ######## 2 Load data #########
@@ -39,8 +48,8 @@ for(i in list.files('/Volumes/INTENSO/methods_paper/output/00-sweep/', full.name
   plist[[i]] <- read.csv(i, stringsAsFactors = F)
 }
 df <- do.call(rbind, plist)
-df <- select(df, -id, -created_utc)
-df <- mutate(df, context = 'reddit')
+#df <- select(df, -id, -created_utc)
+#df <- mutate(df, context = 'reddit')
 
 ## ---------------------------
 ## Traditional calls
@@ -57,11 +66,9 @@ df <- rbind(df, reddit) %>% as_tibble
 ### 4 Select corpus entries ##
 ## ---------------------------
 ## filter out observations containing negating adverbs
-prblm <- c('too', 'not', 'less')
-df <- df %>% filter(!(TARGET_mod%in%prblm|ADV%in%prblm)) # NOTE: df becomes dfx !!!
-## filter out adjectives that are not actually adjectives
-prblm <- c('most', 'many', 'more', 'non', 'other', 'last', 'overall', 'much', 'idk', 'holy', 'such')
-df <- df %>% filter(!ADJ%in%prblm)
+prblm <- c('too', 'not', 'less', 'both', 'equally', 'through', 'most', 'many', 
+           'more', 'non', 'other', 'last', 'overall', 'much', 'idk', 'holy', 'such')
+df <- df %>% filter(!(TARGET_mod%in%prblm|ADV%in%prblm|ADJ%in%prblm)) # NOTE: df becomes dfx !!!
 
 ## ---------------------------
 ### 5 Sentiment annotation ###
@@ -83,11 +90,29 @@ df <- left_join(df, kw)
 df <- df %>% mutate(CCONJ = ifelse(is.na(CCONJ), 'but', CCONJ))
 ## filter out adjectives with a sentiWords score of 0 or NA
 df <- filter(df, !(sentiWords == 0 | is.na(sentiWords)))
-# Make dummy for modifier
+## Make dummy for modifier
 df <- df %>% mutate(ADV_dummy = ifelse(is.na(ADV), 0, 1),
                     TARGET_pol_mod_dummy = ifelse(is.na(TARGET_mod), 0, 1))
+## filter out other problematic structures
+problemos <- df %>% 
+  rowwise %>% 
+  mutate(
+    prblm = case_when(
+      first == 1 ~ paste0(paste('(both|(at the same time))', switch(!(is.na(TARGET_mod)+1),TARGET_mod,NULL), TARGET, switch(!(is.na(comma)+1), comma, NULL), CCONJ, switch(!(is.na(ADV)+1),ADV,NULL), ADJ, collapse = ' '), '(at the same time)?'),
+      first == 0 ~ paste0(paste('(both|(at the same time))', switch(!(is.na(ADV)+1),ADV,NULL), ADJ, switch(!(is.na(comma)+1), comma, NULL), CCONJ, switch(!(is.na(TARGET_mod)+1),TARGET_mod,NULL), TARGET, collapse = ' '), '(at the same time)?')
+    ),
+    prblm = gsub('\\s+', '\\\\\\s', prblm),
+    ADJ_pol = ifelse(sentiWords > 0, 'positive', 'negative')
+  ) %>% 
+  filter(grepl(prblm, corpus) & !(ADJ_pol == TARGET_pol))
+df <- anti_join(df, problemos)
 
+df %>% 
+  group_by(TARGET) %>% 
+  summarise(n = n()) %>% 
+  print(n = 200)
 
+save(df, file = '../output/03-complete_corpus/sweep-only.RDS')
 save(df, file = '/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/corpus_redone.RDS')
 load('/Volumes/INTENSO/methods_paper/output/02-finalized-corpora/baseline/reddit/corpus_redone.RDS')
 rm(annot)

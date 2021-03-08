@@ -40,7 +40,7 @@ getwd()
 ## ---------------------------
 ######## 3 Load data #########
 ## ---------------------------
-datasets <- list.files('../output/00-bulk-data/', full.names = T, pattern = '\\%22')
+datasets <- list.files('../output/00-bulk-data/raw_aggr/', full.names = T, pattern = '\\%22')
 search.terms <- read.table('../input/dict_rerun_02_09_20.txt', header = T, stringsAsFactors = F, sep=',')
 
 ## ---------------------------
