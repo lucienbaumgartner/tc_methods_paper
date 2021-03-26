@@ -36,6 +36,7 @@ library(factoextra)
 library(quanteda) # remove again later
 library(MNLpred)
 library(purrr)
+library(ggplot2)
 rm(list =ls())
 
 
@@ -57,11 +58,23 @@ abbrv <- function(x, width = 200) lapply(strwrap(x, width, simplify = FALSE), pa
 load('../output/03-complete_corpus/sweep-only.RDS')
 dfx <- df
 
+## ---------------------------
+######## 3 Summaries #########
+## ---------------------------
 dfx %>% 
   group_by(TARGET) %>% 
   summarise(n=n()) %>% 
   pull(n)
-
+dfx %>% 
+  mutate(created_utc = as.POSIXct(dfx$created_utc, origin="1970-01-01")) %>% 
+  ggplot(aes(x=created_utc)) +
+  geom_histogram() +
+  facet_wrap(~TARGET, scales = 'free_y', nrow = 10)
+dfx %>% 
+  mutate(created_utc = as.POSIXct(dfx$created_utc, origin="1970-01-01")) %>% 
+  group_by(TARGET) %>% 
+  summarise(min(created_utc),
+            max(created_utc))
 ## ---------------------------
 ######### 5 Models  ##########
 ## ---------------------------
